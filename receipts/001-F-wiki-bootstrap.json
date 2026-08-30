@@ -1,0 +1,31 @@
+{
+  "schema": "theseus.memory-provider-hooks.research-receipt.v1",
+  "issue": "1",
+  "probe": "001-F-wiki-bootstrap",
+  "date": "2026-08-30",
+  "status": "WIKI_GIT_REMOTE_VERIFIED",
+  "scope": "GITHUB_WIKI_BOOTSTRAP_AND_REMOTE_READBACK",
+  "manual_boundary": {
+    "first_page_required": true,
+    "first_page_completed": true
+  },
+  "wiki": {
+    "repository": "TeaShaman-cyber/theseus-memory-provider-lab.wiki",
+    "branch": "master",
+    "seed_commit": "1e889df149c57e3c2b1e7ce3e8804c96f88046a2",
+    "pages": [
+      "Home.md",
+      "Terminology.md",
+      "Research-Lifecycle.md",
+      "Experiment-Traceability.md",
+      "Memory-Provider-Contract.md"
+    ]
+  },
+  "verification": {
+    "governed_wrapper_push": "PASS",
+    "remote_sha_readback": "PASS",
+    "fresh_clone_readback": "PASS",
+    "key_invariant_readback": "PASS"
+  },
+  "boundary": "Wiki is a human navigation surface; the main repository remains canonical research authority."
+}

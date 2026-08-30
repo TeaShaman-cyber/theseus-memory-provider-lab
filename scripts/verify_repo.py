@@ -38,15 +38,15 @@ readme = (ROOT / 'README.md').read_text()
 for token in [
     'https://github.com/TeaShaman-cyber/theseus-research',
     'does not define the Theseus program contract',
-    'Wiki: ENABLED / MANUAL_FIRST_PAGE_REQUIRED',
-    'Create the first page',
+    'Wiki: WIKI_GIT_REMOTE_VERIFIED',
+    '1e889df149c57e3c2b1e7ce3e8804c96f88046a2',
 ]:
     if token not in readme:
         fail(f'README missing contract marker: {token}')
 
 receipts = sorted((ROOT / 'receipts').glob('*.json'))
-if len(receipts) < 6:
-    fail(f'expected at least 6 receipts, found {len(receipts)}')
+if len(receipts) < 7:
+    fail(f'expected at least 7 receipts, found {len(receipts)}')
 for path in receipts:
     text = path.read_text()
     try:

@@ -63,25 +63,25 @@ write + exact readback where supported
 
 The missing host-level pieces are investigated explicitly rather than assumed.
 
-## Wiki bootstrap — one manual GitHub step
+## Wiki bootstrap
 
 **Current bootstrap status:**
 
 ```text
-Wiki: ENABLED / MANUAL_FIRST_PAGE_REQUIRED
+Wiki: WIKI_GIT_REMOTE_VERIFIED
 ```
 
-GitHub can report Wiki as enabled before the repository's `.wiki.git` remote exists. The first page must be created manually in the GitHub UI.
+GitHub Wiki required one manual initialization step: the first `Home` page had to be created in the GitHub UI before the `.wiki.git` remote existed. That one-time boundary is now complete.
 
-After this repository is created:
+Verified Wiki seed commit:
 
-1. Open this repository on GitHub.
-2. Open the **Wiki** tab.
-3. Click **Create the first page**.
-4. Create and save the initial `Home` page.
-5. Only after that step should `theseus-memory-provider-lab.wiki.git` be expected to exist.
+```text
+1e889df149c57e3c2b1e7ce3e8804c96f88046a2
+```
 
-After the first page exists, subsequent Wiki pages can be managed and independently verified through Git. Wiki remains a human navigation surface; contracts, experiments, receipts, and executable checks remain canonical in the main repository.
+The Wiki now contains `Home`, `Terminology`, `Research-Lifecycle`, `Experiment-Traceability`, and `Memory-Provider-Contract`. Subsequent Wiki changes are managed through the governed Wiki wrapper and require remote SHA readback.
+
+Wiki remains a human navigation surface; contracts, experiments, receipts, and executable checks remain canonical in the main repository.
 
 See [Wiki bootstrap](docs/wiki-bootstrap.md).
 

@@ -21,11 +21,12 @@ class PublicContractTest(unittest.TestCase):
         for rel in required:
             self.assertTrue((ROOT / rel).is_file(), rel)
 
-    def test_readme_declares_parent_and_manual_wiki_bootstrap(self):
+    def test_readme_declares_parent_and_verified_wiki_bootstrap(self):
         text = (ROOT / 'README.md').read_text()
         self.assertIn('https://github.com/TeaShaman-cyber/theseus-research', text)
-        self.assertIn('Wiki: ENABLED / MANUAL_FIRST_PAGE_REQUIRED', text)
-        self.assertIn('Create the first page', text)
+        self.assertIn('Wiki: WIKI_GIT_REMOTE_VERIFIED', text)
+        self.assertIn('1e889df149c57e3c2b1e7ce3e8804c96f88046a2', text)
+        self.assertTrue((ROOT / 'receipts/001-F-wiki-bootstrap.json').is_file())
         self.assertIn('does not define the Theseus program contract', text)
 
     def test_public_receipts_are_json_and_private_markers_are_absent(self):
