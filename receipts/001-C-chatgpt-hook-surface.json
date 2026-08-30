@@ -1,0 +1,24 @@
+{
+  "boundary": "Codex plugin hooks do not establish ChatGPT hook support; private/internal capability remains unknown.",
+  "date": "2026-08-30",
+  "evidence": {
+    "chatgpt_help_lists": [
+      "skills",
+      "apps",
+      "app templates"
+    ],
+    "chatgpt_public_pre_post_turn_callback_found": false,
+    "codex_manifest_hooks_field": true,
+    "openai_plugins_commit": "1e285826e604f66f7208f7ac4dba0fe8341d1f57",
+    "openai_plugins_repo_scope": "curated collection of Codex plugin examples"
+  },
+  "issue": "001-chatgpt-memory-provider-hooks",
+  "probe": "001-C-chatgpt-hook-surface",
+  "publication": {
+    "private_correspondence_included": false,
+    "published_in": "theseus-memory-provider-lab",
+    "sanitized": true
+  },
+  "schema": "theseus.memory-provider-hooks.research-receipt.v1",
+  "status": "NO_PUBLIC_CHATGPT_HOOK_CONTRACT_FOUND"
+}

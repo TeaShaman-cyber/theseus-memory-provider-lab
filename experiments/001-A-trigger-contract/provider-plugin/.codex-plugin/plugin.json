@@ -1,0 +1,7 @@
+{
+  "name": "example-memory-provider",
+  "version": "0.0.0-spike",
+  "description": "THROWAWAY research package proving the Skills+App memory-provider contract shape.",
+  "skills": "./skills/",
+  "apps": "./.app.json"
+}

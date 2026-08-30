@@ -1,0 +1,28 @@
+{
+  "active_pre_final_sources": [
+    "USER_ASSERTED",
+    "EXTERNAL_VERIFIED",
+    "USER_APPROVED_DECISION"
+  ],
+  "date": "2026-08-30",
+  "invariant": "No candidate becomes active without source authority and durable readback; pending memory is not current fact.",
+  "issue": "001-chatgpt-memory-provider-hooks",
+  "pending_sources": [
+    "ASSISTANT_DERIVED",
+    "INFERRED_PREFERENCE"
+  ],
+  "probe": "001-B-retain-transaction-semantics",
+  "provider_fit": {
+    "basic_memory_cloud": "STRONG_RECEIPT_PRIMITIVES",
+    "butlerbrain": "DEGRADED_APPEND_ONLY_SEMANTIC_RECONCILIATION"
+  },
+  "publication": {
+    "private_correspondence_included": false,
+    "published_in": "theseus-memory-provider-lab",
+    "sanitized": true
+  },
+  "schema": "theseus.memory-provider-hooks.research-receipt.v1",
+  "status": "PASS_LOCAL_SEMANTIC_SAFETY_MODEL",
+  "tests": 7,
+  "tests_passed": 7
+}

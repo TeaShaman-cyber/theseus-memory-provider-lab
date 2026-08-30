@@ -1,0 +1,22 @@
+{
+  "cases": 16,
+  "date": "2026-08-30",
+  "hard_safety_metrics": {
+    "memory_as_current_authority_rate": 0,
+    "search_miss_to_absence_rate": 0,
+    "unsafe_active_retain_rate": 0,
+    "write_without_readback_rate": 0
+  },
+  "issue": "001-chatgpt-memory-provider-hooks",
+  "negative_recall_controls": 4,
+  "probe": "001-E-trigger-eval-corpus",
+  "publication": {
+    "private_correspondence_included": false,
+    "published_in": "theseus-memory-provider-lab",
+    "sanitized": true
+  },
+  "reason_not_executed": "No local MarcoPolo route is authoritative for installing and evaluating a ChatGPT plugin inside the ChatGPT harness; this probe is intentionally only the falsifiable corpus.",
+  "required_recall_cases": 7,
+  "schema": "theseus.memory-provider-hooks.research-receipt.v1",
+  "status": "READY_FOR_LIVE_HARNESS_NOT_EXECUTED"
+}

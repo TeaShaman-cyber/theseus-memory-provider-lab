@@ -1,0 +1,43 @@
+{
+  "acceptance": {
+    "broad_trigger_representable": true,
+    "compact_delta_retention": true,
+    "host_lifecycle_not_claimed": true,
+    "memory_not_authority": true,
+    "official_layout": true,
+    "pre_final_staging": true,
+    "recall_before_work": true,
+    "search_miss_unknown": true,
+    "skills_plus_apps": true
+  },
+  "date": "2026-08-30",
+  "disposition": {
+    "butlerbrain_portable_app_dependency": "BLOCKED_UNRESOLVED_IDENTITY",
+    "deterministic_every_turn_execution": "UNKNOWN_NOT_DOCUMENTED",
+    "model_mediated_auto_recall": "REPRESENTABLE",
+    "model_mediated_pre_final_retain": "REPRESENTABLE",
+    "true_post_turn_callback": "UNKNOWN_NOT_DOCUMENTED"
+  },
+  "issue": "001-chatgpt-memory-provider-hooks",
+  "next_probe": "001-B-retain-transaction-semantics",
+  "official_patterns": {
+    "notion": "combined Skills plus App/MCP tools",
+    "plugin_schema": "skills and apps may coexist in one plugin manifest",
+    "product_design": "router loads user-context preflight before Product Design workflows; saved context used as default grounding",
+    "public_equity_investing": "counterexample: user-context intentionally explicit-only and not a pre-answer gate"
+  },
+  "probe": "001-A-trigger-contract",
+  "publication": {
+    "private_correspondence_included": false,
+    "published_in": "theseus-memory-provider-lab",
+    "sanitized": true
+  },
+  "schema": "theseus.memory-provider-hooks.research-receipt.v1",
+  "scope": "LOCAL_MARCOPOLO_THROWAWAY_STATIC_PROBE",
+  "source_identities": {
+    "hermes_agent": "4f22543509d1b91dc45bcb369447126c5eb14fb7",
+    "openai_plugins": "1e285826e604f66f7208f7ac4dba0fe8341d1f57",
+    "superpowers": "b36e0829c6d0140e93cfef2ca599b1b07d4a7797"
+  },
+  "status": "PASS_REPRESENTABLE_WITH_LIMITATIONS"
+}

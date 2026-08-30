@@ -1,0 +1,37 @@
+{
+  "date": "2026-08-30",
+  "issue": "001-chatgpt-memory-provider-hooks",
+  "probe": "001-D-provider-adapter-fit",
+  "provider_fit": {
+    "Basic Memory Cloud": {
+      "auto_recall": "FEASIBLE",
+      "durable_write": "FEASIBLE",
+      "exact_write_readback": "EXPOSED",
+      "metadata_lifecycle_filtering": "EXPOSED",
+      "recommended_backend_change": "explicit provider namespace/project routing for always-on mode",
+      "safe_automatic_retain": "FEASIBLE_WITH_CONFIGURED_PROJECT_SCOPE"
+    },
+    "ButlerBrain": {
+      "auto_recall": "FEASIBLE",
+      "durable_write": "FEASIBLE",
+      "exact_write_readback": "NOT_EXPOSED",
+      "identity_binding": "MODEL_ARGUMENT_CURRENTLY_REQUIRED",
+      "recommended_backend_change": "server-side authenticated identity plus exact transaction receipt/readback",
+      "safe_automatic_retain": "DEGRADED"
+    }
+  },
+  "publication": {
+    "account_permission_state_included": false,
+    "private_identity_values_included": false,
+    "sanitized": true
+  },
+  "recommended_contract": [
+    "memory_recall",
+    "memory_retain",
+    "memory_readback",
+    "memory_reconcile_optional"
+  ],
+  "schema": "theseus.memory-provider-hooks.research-receipt.v1",
+  "scope": "PUBLIC_SANITIZED_PROVIDER_INTERFACE_ANALYSIS",
+  "status": "PASS_WITH_PROVIDER_SPECIFIC_GAPS"
+}

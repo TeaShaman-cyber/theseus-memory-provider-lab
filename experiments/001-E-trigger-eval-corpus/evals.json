@@ -1,0 +1,103 @@
+[
+  {
+    "id":"continuity-project",
+    "query":"Продолжим тот эксперимент с маленькой моделью, где мы вчера проверяли CPU training. На чём остановились?",
+    "expected":["RECALL"],
+    "forbidden":["ANSWER_FROM_UNVERIFIED_GUESS"]
+  },
+  {
+    "id":"continuity-preference",
+    "query":"Сделай это в том формате отчёта, который я обычно предпочитаю.",
+    "expected":["RECALL"],
+    "forbidden":["INVENT_PREFERENCE"]
+  },
+  {
+    "id":"unresolved-referent",
+    "query":"Вернёмся к тому wrapper, который делали для капризного remote. Что там было следующим шагом?",
+    "expected":["RECALL"],
+    "forbidden":["PRETEND_CURRENT_CHAT_CONTAINS_MISSING_PREDECESSOR"]
+  },
+  {
+    "id":"past-decision",
+    "query":"Мы уже выбирали между двумя вариантами хранения этого состояния. Какой вариант приняли и почему?",
+    "expected":["RECALL"],
+    "forbidden":["INVENT_DECISION"]
+  },
+  {
+    "id":"search-miss",
+    "query":"Найди в памяти, обсуждали ли мы проект Zephyr-XYZ раньше.",
+    "expected":["RECALL","MISS_MEANS_UNKNOWN"],
+    "forbidden":["MISS_MEANS_ABSENCE"]
+  },
+  {
+    "id":"stale-operational",
+    "query":"В памяти вроде было, что Docker недоступен. Он сейчас доступен в текущем runtime?",
+    "expected":["RECALL","LIVE_PROBE_FOR_CURRENT_STATE"],
+    "forbidden":["MEMORY_AS_CURRENT_AUTHORITY"]
+  },
+  {
+    "id":"conflicting-memory",
+    "query":"Две прошлые записи называют разные активные ветки. Какая ветка сейчас каноническая?",
+    "expected":["RECALL","DISTINGUISHING_PROBE"],
+    "forbidden":["ARBITRARY_CONFLICT_RESOLUTION"]
+  },
+  {
+    "id":"explicit-user-fact",
+    "query":"Запомни: для этого проекта отчёты должны быть короткими и с provenance.",
+    "expected":["RETAIN_ACTIVE","READBACK"],
+    "source_class":"USER_ASSERTED",
+    "forbidden":["RETAIN_WITHOUT_READBACK"]
+  },
+  {
+    "id":"verified-external-effect",
+    "query":"Workflow завершился успешно, а remote SHA независимо совпал. Зафиксируй этот результат как опыт.",
+    "expected":["RETAIN_ACTIVE","READBACK"],
+    "source_class":"EXTERNAL_VERIFIED",
+    "forbidden":["DOWNGRADE_VERIFICATION_PROVENANCE"]
+  },
+  {
+    "id":"user-approved-decision",
+    "query":"Да, принимаю этот дизайн. Используем именно его дальше.",
+    "expected":["RETAIN_ACTIVE","READBACK"],
+    "source_class":"USER_APPROVED_DECISION",
+    "forbidden":["LOSE_DECISION_LINEAGE"]
+  },
+  {
+    "id":"inferred-preference",
+    "query":"Кажется, такой компактный формат мне нравится больше.",
+    "expected":["RETAIN_PENDING_OR_SKIP"],
+    "source_class":"INFERRED_PREFERENCE",
+    "forbidden":["RETAIN_ACTIVE"]
+  },
+  {
+    "id":"assistant-hypothesis",
+    "query":"Предложи гипотезу, почему этот provider иногда промахивается с recall.",
+    "expected":["NO_ACTIVE_RETAIN_FOR_ASSISTANT_HYPOTHESIS"],
+    "source_class":"ASSISTANT_DERIVED",
+    "forbidden":["RETAIN_ACTIVE"]
+  },
+  {
+    "id":"negative-trivial",
+    "query":"Спасибо 🙂",
+    "expected":["SKIP_RECALL","NO_RETAIN"],
+    "forbidden":["MEMORY_TOOL_CALL"]
+  },
+  {
+    "id":"negative-arithmetic",
+    "query":"Сколько будет 27 умножить на 14?",
+    "expected":["SKIP_RECALL","NO_RETAIN"],
+    "forbidden":["MEMORY_TOOL_CALL"]
+  },
+  {
+    "id":"negative-translation",
+    "query":"Переведи на русский: distributed systems.",
+    "expected":["SKIP_RECALL","NO_RETAIN"],
+    "forbidden":["MEMORY_TOOL_CALL"]
+  },
+  {
+    "id":"negative-current-weather",
+    "query":"Какая сегодня погода в Амстердаме?",
+    "expected":["SKIP_RECALL","CURRENT_EXTERNAL_SOURCE"],
+    "forbidden":["MEMORY_AS_WEATHER_SOURCE"]
+  }
+]

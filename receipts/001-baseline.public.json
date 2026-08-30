@@ -1,0 +1,54 @@
+{
+  "date": "2026-08-30",
+  "epistemic": {
+    "fact": [
+      "Superpowers automation mechanism is harness-dependent.",
+      "Hermes MemoryProvider is host-lifecycle driven.",
+      "ChatGPT Skills can be automatically used when helpful.",
+      "Plugins can combine Skills and Apps."
+    ],
+    "inference": [
+      "A Skill plus memory App can approximate an automatic memory provider in ChatGPT."
+    ],
+    "unknown": [
+      "Deterministic every-turn Skill triggering in ChatGPT.",
+      "Public app lifecycle callbacks equivalent to Hermes pre_llm_call/post-turn.",
+      "Reliable exact-final-response retention without a host post-turn hook."
+    ]
+  },
+  "issue": "001-chatgpt-memory-provider-hooks",
+  "next_probes": [
+    "001-A-trigger-contract",
+    "001-B-retain-transaction-semantics"
+  ],
+  "observations": [
+    "Superpowers Hermes integration registers stock skills and injects using-superpowers only on first-turn pre_llm_call.",
+    "Hermes MemoryProvider prefetch is host-called before LLM and sync_turn is host-called after completed turns.",
+    "ChatGPT documents automatic Skill selection when useful and Plugins that package Skills plus Apps.",
+    "No public ChatGPT app/plugin lifecycle callback equivalent to Hermes pre/post turn hooks was found in this pass.",
+    "Permission configuration is account-specific and intentionally excluded from public evidence."
+  ],
+  "publication": {
+    "account_permission_state_included": false,
+    "private_correspondence_included": false,
+    "sanitized": true
+  },
+  "schema": "theseus.memory-provider-hooks.research-receipt.v1",
+  "scope": "PUBLIC_SANITIZED_BASELINE_FROM_LOCAL_MARCOPOLO_RESEARCH",
+  "sources": {
+    "hermes_agent": {
+      "commit": "4f22543509d1b91dc45bcb369447126c5eb14fb7"
+    },
+    "openai_docs": [
+      "https://help.openai.com/en/articles/20001066-skills-in-chatgpt",
+      "https://help.openai.com/en/articles/20001256-plugins-in-chatgpt-and-codex",
+      "https://help.openai.com/en/articles/11487775"
+    ],
+    "superpowers": {
+      "commit": "b36e0829c6d0140e93cfef2ca599b1b07d4a7797",
+      "repo": "https://github.com/obra/superpowers",
+      "version": "6.3.0"
+    }
+  },
+  "status": "INVESTIGATING"
+}
