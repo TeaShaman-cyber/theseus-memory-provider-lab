@@ -48,3 +48,10 @@ class PublicContractTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+class RepositoryHygieneTest(unittest.TestCase):
+    def test_no_generated_python_cache_is_tracked(self):
+        import subprocess
+        tracked = subprocess.check_output(['git', 'ls-files'], cwd=ROOT, text=True).splitlines()
+        bad = [p for p in tracked if '/__pycache__/' in f'/{p}' or p.endswith('.pyc')]
+        self.assertEqual(bad, [])
