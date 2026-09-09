@@ -43,6 +43,7 @@ class Attempt:
     payload: dict
     semantic_state: SemanticState
     transaction_state: TransactionState
+    verified_payload: dict | None = None
 
 
 class ReferenceProvider:
@@ -135,7 +136,11 @@ def verify_readback(
         if attempt.source_class in ACTIVE_AFTER_READBACK
         else SemanticState.PENDING
     )
-    return replace(verified, semantic_state=semantic_state)
+    return replace(
+        verified,
+        semantic_state=semantic_state,
+        verified_payload=deepcopy(observed),
+    )
 
 
 def reconcile(
@@ -153,5 +158,7 @@ def reconcile(
         raise TransitionError(f'reconcile forbidden from {attempt.transaction_state.value}')
     if fail:
         return replace(attempt, transaction_state=TransactionState.RECONCILIATION_PENDING)
-    projection.records[attempt.record_id] = deepcopy(attempt.payload)
+    if attempt.verified_payload is None:
+        raise TransitionError('reconcile missing verified payload snapshot')
+    projection.records[attempt.record_id] = deepcopy(attempt.verified_payload)
     return _advance(attempt, 'reconcile')

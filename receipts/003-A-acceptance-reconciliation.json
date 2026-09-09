@@ -8,7 +8,8 @@
     "assistant_derived_can_be_reconciled_while_remaining_semantically_pending",
     "reconcile_before_verified_readback_is_forbidden",
     "write_retry_with_same_idempotency_key_does_not_duplicate_provider_write",
-    "nested_payload_mutation_cannot_silently_rewrite_transaction_provider_or_projection_snapshots"
+    "nested_payload_mutation_cannot_silently_rewrite_transaction_provider_or_projection_snapshots",
+    "reconciliation_uses_the_payload_snapshot_that_passed_readback"
   ],
   "issue": "3",
   "probe": "003-A-acceptance-reconciliation",
@@ -19,7 +20,7 @@
   },
   "schema": "theseus.memory-provider-lab.research-receipt.v1",
   "status": "PASS_LOCAL_REFERENCE_MODEL",
-  "tests": 9,
-  "tests_passed": 9,
+  "tests": 10,
+  "tests_passed": 10,
   "transition_table_version": "0.1"
 }

@@ -150,5 +150,22 @@ class AcceptanceReconciliationStateMachineTest(unittest.TestCase):
             {'claim': {'text': 'original'}},
         )
 
+
+    def test_reconcile_uses_payload_snapshot_that_passed_readback(self):
+        provider = mod.ReferenceProvider()
+        projection = mod.DerivedProjection()
+        attempt = mod.accept(mod.validate(mod.start(
+            'tx-10', 'mem-10', 'USER_ASSERTED', 'idem-10', {'claim': {'text': 'original'}}
+        )))
+        attempt = mod.persist(attempt, provider)
+        attempt = mod.verify_readback(attempt, provider)
+
+        attempt.payload['claim']['text'] = 'mutated-after-readback'
+        attempt = mod.reconcile(attempt, projection)
+
+        self.assertEqual(attempt.transaction_state, mod.TransactionState.RECONCILED)
+        self.assertEqual(provider.records['mem-10'], {'claim': {'text': 'original'}})
+        self.assertEqual(projection.records['mem-10'], {'claim': {'text': 'original'}})
+
 if __name__ == '__main__':
     unittest.main()

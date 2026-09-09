@@ -64,6 +64,8 @@ A retry after `WRITE_FAILED` reuses the same idempotency key. Repeating persiste
 
 Nested payloads are snapshotted at transaction, durable-provider, and derived-projection boundaries so later caller mutation cannot silently rewrite accepted state or make readback verification compare two aliases of the same object.
 
+A successful readback also stores a separate verified payload snapshot. Reconciliation consumes that snapshot rather than the still-mutable transaction payload, so post-verification mutation cannot enter a derived projection as if it had been verified.
+
 ## Scope boundary
 
 This is a synthetic in-memory model. It does not establish production provider semantics, crash consistency, distributed transaction guarantees, or a host/runtime memory lifecycle callback. Those remain separate research questions.
