@@ -62,6 +62,8 @@ The third row is the key separation: a memory may be durably written and readbac
 
 A retry after `WRITE_FAILED` reuses the same idempotency key. Repeating persistence after success does not create a second provider write in the reference model.
 
+Nested payloads are snapshotted at transaction, durable-provider, and derived-projection boundaries so later caller mutation cannot silently rewrite accepted state or make readback verification compare two aliases of the same object.
+
 ## Scope boundary
 
 This is a synthetic in-memory model. It does not establish production provider semantics, crash consistency, distributed transaction guarantees, or a host/runtime memory lifecycle callback. Those remain separate research questions.

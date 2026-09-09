@@ -7,7 +7,8 @@
     "reconciliation_failure_does_not_erase_verified_persistence",
     "assistant_derived_can_be_reconciled_while_remaining_semantically_pending",
     "reconcile_before_verified_readback_is_forbidden",
-    "write_retry_with_same_idempotency_key_does_not_duplicate_provider_write"
+    "write_retry_with_same_idempotency_key_does_not_duplicate_provider_write",
+    "nested_payload_mutation_cannot_silently_rewrite_transaction_provider_or_projection_snapshots"
   ],
   "issue": "3",
   "probe": "003-A-acceptance-reconciliation",
@@ -18,7 +19,7 @@
   },
   "schema": "theseus.memory-provider-lab.research-receipt.v1",
   "status": "PASS_LOCAL_REFERENCE_MODEL",
-  "tests": 7,
-  "tests_passed": 7,
+  "tests": 9,
+  "tests_passed": 9,
   "transition_table_version": "0.1"
 }

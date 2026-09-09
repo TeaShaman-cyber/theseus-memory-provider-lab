@@ -1,3 +1,4 @@
+from copy import deepcopy
 from dataclasses import dataclass, replace
 from enum import Enum
 
@@ -52,12 +53,12 @@ class ReferenceProvider:
 
     def write(self, attempt: Attempt):
         prior = self.idempotency.get(attempt.idempotency_key)
-        candidate = (attempt.record_id, attempt.payload)
+        candidate = (attempt.record_id, deepcopy(attempt.payload))
         if prior is not None:
             if prior != candidate:
                 raise TransitionError('idempotency key reused for different payload')
             return
-        self.records[attempt.record_id] = dict(attempt.payload)
+        self.records[attempt.record_id] = deepcopy(attempt.payload)
         self.idempotency[attempt.idempotency_key] = candidate
         self.write_count += 1
 
@@ -85,7 +86,7 @@ def start(txid: str, record_id: str, source_class: str, idempotency_key: str, pa
         record_id=record_id,
         source_class=source_class,
         idempotency_key=idempotency_key,
-        payload=dict(payload),
+        payload=deepcopy(payload),
         semantic_state=SemanticState.PENDING,
         transaction_state=TransactionState.PROPOSED,
     )
@@ -152,5 +153,5 @@ def reconcile(
         raise TransitionError(f'reconcile forbidden from {attempt.transaction_state.value}')
     if fail:
         return replace(attempt, transaction_state=TransactionState.RECONCILIATION_PENDING)
-    projection.records[attempt.record_id] = dict(attempt.payload)
+    projection.records[attempt.record_id] = deepcopy(attempt.payload)
     return _advance(attempt, 'reconcile')
