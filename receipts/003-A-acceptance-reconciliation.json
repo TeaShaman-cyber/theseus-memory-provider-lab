@@ -1,0 +1,24 @@
+{
+  "date": "2026-09-09",
+  "epistemic_boundary": "Synthetic in-memory reference model only; no production provider, host callback, or distributed persistence claim.",
+  "invariants_observed": [
+    "write_failure_does_not_imply_persistence",
+    "readback_mismatch_does_not_imply_verification_or_activation",
+    "reconciliation_failure_does_not_erase_verified_persistence",
+    "assistant_derived_can_be_reconciled_while_remaining_semantically_pending",
+    "reconcile_before_verified_readback_is_forbidden",
+    "write_retry_with_same_idempotency_key_does_not_duplicate_provider_write"
+  ],
+  "issue": "3",
+  "probe": "003-A-acceptance-reconciliation",
+  "publication": {
+    "private_correspondence_included": false,
+    "published_in": "theseus-memory-provider-lab",
+    "sanitized": true
+  },
+  "schema": "theseus.memory-provider-lab.research-receipt.v1",
+  "status": "PASS_LOCAL_REFERENCE_MODEL",
+  "tests": 7,
+  "tests_passed": 7,
+  "transition_table_version": "0.1"
+}
