@@ -16,7 +16,10 @@
     "exact_json_comparison_distinguishes_boolean_and_numeric_payload_values",
     "validated_candidate_snapshot_is_immutable_before_acceptance",
     "validation_rejects_non_json_mutation_before_acceptance",
-    "exact_json_comparison_rejects_non_string_mapping_keys"
+    "exact_json_comparison_rejects_non_string_mapping_keys",
+    "idempotency_operation_identity_includes_source_class",
+    "provider_record_versions_order_projection_updates",
+    "stale_verified_attempt_cannot_replace_newer_projection"
   ],
   "issue": "3",
   "probe": "003-A-acceptance-reconciliation",
@@ -33,17 +36,17 @@
   "schema": "theseus.memory-provider-lab.research-receipt.v1",
   "status": "PASS_LOCAL_REFERENCE_MODEL",
   "tested_source_files_sha256": {
-    "experiments/003-acceptance-reconciliation/simulate.py": "b683071bd6cb97138e854baae2a03c80cda5697092b6c10e33ccadc61cc14656",
-    "tests/test_acceptance_reconciliation_state_machine.py": "9965be284eca07c4656e27bef9e7963c1134639cff1d054c3e347f08d7b26ee9"
+    "experiments/003-acceptance-reconciliation/simulate.py": "5e75c929430484b8df912b384dbfb1c8d053e12df4efd1361348b6c4fb09343f",
+    "tests/test_acceptance_reconciliation_state_machine.py": "184f5c80287209a9344c5fdd730064e786156174cccba84a71fb08d66dfcaf32"
   },
-  "tested_source_revision": "2a5f3804458f96e32febd85567de672934fd7e74",
-  "tested_source_tree": "3cc7519c76eb2ee464341c6e2697943d12b5029f",
-  "tests": 16,
-  "tests_passed": 16,
+  "tested_source_revision": "c182ebfe128e856a63e64dbf162df3c7572395e7",
+  "tested_source_tree": "398027700a8898d05c8cf1f396d7a3ec2777c136",
+  "tests": 18,
+  "tests_passed": 18,
   "transition_table_version": "0.1",
   "verification": {
-    "state_machine_tests": "16/16 PASS",
-    "full_repository_tests": "29/29 PASS",
+    "state_machine_tests": "18/18 PASS",
+    "full_repository_tests": "31/31 PASS",
     "repository_verifier": "PASS"
   }
 }
