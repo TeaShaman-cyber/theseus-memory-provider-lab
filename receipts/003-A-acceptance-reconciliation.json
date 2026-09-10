@@ -1,5 +1,5 @@
 {
-  "date": "2026-09-09",
+  "date": "2026-09-10",
   "epistemic_boundary": "Synthetic in-memory reference model only; no production provider, host callback, or distributed persistence claim.",
   "invariants_observed": [
     "write_failure_does_not_imply_persistence",
@@ -9,7 +9,8 @@
     "reconcile_before_verified_readback_is_forbidden",
     "write_retry_with_same_idempotency_key_does_not_duplicate_provider_write",
     "nested_payload_mutation_cannot_silently_rewrite_transaction_provider_or_projection_snapshots",
-    "reconciliation_uses_the_payload_snapshot_that_passed_readback"
+    "reconciliation_uses_the_payload_snapshot_that_passed_readback",
+    "verified_payload_snapshot_is_immutable_until_reconciliation"
   ],
   "issue": "3",
   "probe": "003-A-acceptance-reconciliation",
@@ -18,9 +19,21 @@
     "published_in": "theseus-memory-provider-lab",
     "sanitized": true
   },
+  "runtime_identity": {
+    "executor": "MarcoPolo workspace",
+    "platform": "Linux 6.12.68-92.122.amzn2023.x86_64 x86_64",
+    "python": "Python 3.11.16"
+  },
   "schema": "theseus.memory-provider-lab.research-receipt.v1",
   "status": "PASS_LOCAL_REFERENCE_MODEL",
-  "tests": 10,
-  "tests_passed": 10,
-  "transition_table_version": "0.1"
+  "tested_source_revision": "55e497437204d46c3562449ce73da8ecf06bf2e9",
+  "tested_source_tree": "60689fae2910ead8d874fa5d5948333ac571760d",
+  "tests": 11,
+  "tests_passed": 11,
+  "transition_table_version": "0.1",
+  "verification": {
+    "full_repository_tests": "23/23 PASS",
+    "repository_verifier": "PASS",
+    "state_machine_tests": "11/11 PASS"
+  }
 }
