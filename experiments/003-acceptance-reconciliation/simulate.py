@@ -1,6 +1,8 @@
+from collections.abc import Mapping
 from copy import deepcopy
 from dataclasses import dataclass, replace
 from enum import Enum
+from types import MappingProxyType
 
 
 TRANSITION_TABLE_VERSION = '0.1'
@@ -43,7 +45,23 @@ class Attempt:
     payload: dict
     semantic_state: SemanticState
     transaction_state: TransactionState
-    verified_payload: dict | None = None
+    verified_payload: Mapping | None = None
+
+
+def _freeze_payload(value):
+    if isinstance(value, dict):
+        return MappingProxyType({key: _freeze_payload(item) for key, item in value.items()})
+    if isinstance(value, list):
+        return tuple(_freeze_payload(item) for item in value)
+    return deepcopy(value)
+
+
+def _thaw_payload(value):
+    if isinstance(value, Mapping):
+        return {key: _thaw_payload(item) for key, item in value.items()}
+    if isinstance(value, tuple):
+        return [_thaw_payload(item) for item in value]
+    return deepcopy(value)
 
 
 class ReferenceProvider:
@@ -139,7 +157,7 @@ def verify_readback(
     return replace(
         verified,
         semantic_state=semantic_state,
-        verified_payload=deepcopy(observed),
+        verified_payload=_freeze_payload(observed),
     )
 
 
@@ -160,5 +178,5 @@ def reconcile(
         return replace(attempt, transaction_state=TransactionState.RECONCILIATION_PENDING)
     if attempt.verified_payload is None:
         raise TransitionError('reconcile missing verified payload snapshot')
-    projection.records[attempt.record_id] = deepcopy(attempt.verified_payload)
+    projection.records[attempt.record_id] = _thaw_payload(attempt.verified_payload)
     return _advance(attempt, 'reconcile')

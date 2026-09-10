@@ -167,5 +167,22 @@ class AcceptanceReconciliationStateMachineTest(unittest.TestCase):
         self.assertEqual(provider.records['mem-10'], {'claim': {'text': 'original'}})
         self.assertEqual(projection.records['mem-10'], {'claim': {'text': 'original'}})
 
+    def test_verified_payload_snapshot_cannot_be_mutated_before_reconciliation(self):
+        provider = mod.ReferenceProvider()
+        projection = mod.DerivedProjection()
+        attempt = mod.accept(mod.validate(mod.start(
+            'tx-11', 'mem-11', 'USER_ASSERTED', 'idem-11', {'claim': {'text': 'original'}}
+        )))
+        attempt = mod.persist(attempt, provider)
+        attempt = mod.verify_readback(attempt, provider)
+
+        with self.assertRaises(TypeError):
+            attempt.verified_payload['claim']['text'] = 'mutated-after-verification'
+
+        attempt = mod.reconcile(attempt, projection)
+        self.assertEqual(attempt.transaction_state, mod.TransactionState.RECONCILED)
+        self.assertEqual(projection.records['mem-11'], {'claim': {'text': 'original'}})
+
+
 if __name__ == '__main__':
     unittest.main()
