@@ -43,7 +43,7 @@ class Attempt:
     record_id: str
     source_class: str
     idempotency_key: str
-    payload: dict
+    payload: Mapping
     semantic_state: SemanticState
     transaction_state: TransactionState
     verified_payload: Mapping | None = None
@@ -88,12 +88,13 @@ class ReferenceProvider:
 
     def write(self, attempt: Attempt):
         prior = self.idempotency.get(attempt.idempotency_key)
-        candidate = (attempt.record_id, deepcopy(attempt.payload))
+        payload = _thaw_payload(attempt.payload)
+        candidate = (attempt.record_id, deepcopy(payload))
         if prior is not None:
             if prior != candidate:
                 raise TransitionError('idempotency key reused for different payload')
             return
-        self.records[attempt.record_id] = deepcopy(attempt.payload)
+        self.records[attempt.record_id] = deepcopy(payload)
         self.idempotency[attempt.idempotency_key] = candidate
         self.write_count += 1
 
@@ -141,7 +142,8 @@ def validate(attempt: Attempt) -> Attempt:
 
 
 def accept(attempt: Attempt) -> Attempt:
-    return _advance(attempt, 'accept')
+    accepted = _advance(attempt, 'accept')
+    return replace(accepted, payload=_freeze_payload(accepted.payload))
 
 
 def persist(attempt: Attempt, provider: ReferenceProvider, *, fail: bool = False) -> Attempt:
@@ -164,7 +166,8 @@ def verify_readback(
     if attempt.transaction_state not in {TransactionState.PERSISTED, TransactionState.READBACK_MISMATCH}:
         raise TransitionError(f'readback forbidden from {attempt.transaction_state.value}')
     observed = provider.records.get(attempt.record_id)
-    if mismatch or observed != attempt.payload:
+    expected = _thaw_payload(attempt.payload)
+    if mismatch or observed != expected:
         return replace(attempt, transaction_state=TransactionState.READBACK_MISMATCH)
     verified = _advance(attempt, 'readback')
     semantic_state = (

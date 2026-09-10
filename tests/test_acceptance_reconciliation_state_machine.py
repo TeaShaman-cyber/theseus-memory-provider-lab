@@ -122,7 +122,8 @@ class AcceptanceReconciliationStateMachineTest(unittest.TestCase):
         self.assertEqual(attempt.payload, {'claim': {'text': 'original'}})
 
         attempt = mod.persist(attempt, provider)
-        attempt.payload['claim']['text'] = 'attempt-mutated'
+        with self.assertRaises(TypeError):
+            attempt.payload['claim']['text'] = 'attempt-mutated'
 
         self.assertEqual(provider.records['mem-8'], {'claim': {'text': 'original'}})
         self.assertEqual(
@@ -131,7 +132,7 @@ class AcceptanceReconciliationStateMachineTest(unittest.TestCase):
         )
 
         verified = mod.verify_readback(attempt, provider)
-        self.assertEqual(verified.transaction_state, mod.TransactionState.READBACK_MISMATCH)
+        self.assertEqual(verified.transaction_state, mod.TransactionState.READBACK_VERIFIED)
 
     def test_reconciled_projection_is_snapshotted_from_attempt_payload(self):
         provider = mod.ReferenceProvider()
@@ -143,7 +144,8 @@ class AcceptanceReconciliationStateMachineTest(unittest.TestCase):
         attempt = mod.verify_readback(attempt, provider)
         attempt = mod.reconcile(attempt, projection)
 
-        attempt.payload['claim']['text'] = 'mutated-after-reconcile'
+        with self.assertRaises(TypeError):
+            attempt.payload['claim']['text'] = 'mutated-after-reconcile'
 
         self.assertEqual(
             projection.records['mem-9'],
@@ -160,11 +162,14 @@ class AcceptanceReconciliationStateMachineTest(unittest.TestCase):
         attempt = mod.persist(attempt, provider)
         attempt = mod.verify_readback(attempt, provider)
 
-        attempt.payload['claim']['text'] = 'mutated-after-readback'
+        provider.records['mem-10']['claim']['text'] = 'provider-mutated-after-readback'
         attempt = mod.reconcile(attempt, projection)
 
         self.assertEqual(attempt.transaction_state, mod.TransactionState.RECONCILED)
-        self.assertEqual(provider.records['mem-10'], {'claim': {'text': 'original'}})
+        self.assertEqual(
+            provider.records['mem-10'],
+            {'claim': {'text': 'provider-mutated-after-readback'}},
+        )
         self.assertEqual(projection.records['mem-10'], {'claim': {'text': 'original'}})
 
     def test_verified_payload_snapshot_cannot_be_mutated_before_reconciliation(self):
@@ -193,6 +198,26 @@ class AcceptanceReconciliationStateMachineTest(unittest.TestCase):
                 'idem-12',
                 {'claim': ({'text': 'original'},)},
             )
+
+
+    def test_accepted_payload_is_immutable_through_write_failure_and_retry(self):
+        provider = mod.ReferenceProvider()
+        attempt = mod.accept(mod.validate(mod.start(
+            'tx-13', 'mem-13', 'USER_ASSERTED', 'idem-13',
+            {'claim': {'text': 'accepted'}}
+        )))
+
+        with self.assertRaises(TypeError):
+            attempt.payload['claim']['text'] = 'mutated-after-accept'
+
+        failed = mod.persist(attempt, provider, fail=True)
+        with self.assertRaises(TypeError):
+            failed.payload['claim']['text'] = 'mutated-after-write-failure'
+
+        retried = mod.persist(failed, provider)
+        self.assertEqual(provider.records['mem-13'], {'claim': {'text': 'accepted'}})
+        self.assertEqual(retried.transaction_state, mod.TransactionState.PERSISTED)
+
 
 
 if __name__ == '__main__':
