@@ -26,6 +26,10 @@
   },
   "schema": "theseus.memory-provider-lab.research-receipt.v1",
   "status": "PASS_LOCAL_REFERENCE_MODEL",
+  "tested_source_files_sha256": {
+    "experiments/003-acceptance-reconciliation/simulate.py": "b80001467f65466770cb7b73eabf0adfd94ae9082b8c83e38c810cb65a0f8fbd",
+    "tests/test_acceptance_reconciliation_state_machine.py": "8e34363a3dd658df40f1eb2d25fc9131228ebc9d3462c7022c4c1a1cb4844f6e"
+  },
   "tested_source_revision": "55e497437204d46c3562449ce73da8ecf06bf2e9",
   "tested_source_tree": "60689fae2910ead8d874fa5d5948333ac571760d",
   "tests": 11,

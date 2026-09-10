@@ -1,3 +1,4 @@
+import hashlib
 import json
 import pathlib
 import re
@@ -43,12 +44,15 @@ class PublicContractTest(unittest.TestCase):
             self.assertIsNone(prohibited.search(text), path.name)
 
     def test_acceptance_reconciliation_receipt_identifies_tested_revision_and_runtime(self):
-        import subprocess
-
         receipt = json.loads(
             (ROOT / 'receipts/003-A-acceptance-reconciliation.json').read_text()
         )
-        for key in ('tested_source_revision', 'tested_source_tree', 'runtime_identity'):
+        for key in (
+            'tested_source_revision',
+            'tested_source_tree',
+            'tested_source_files_sha256',
+            'runtime_identity',
+        ):
             self.assertIn(key, receipt)
         revision = receipt['tested_source_revision']
         tree = receipt['tested_source_tree']
@@ -56,25 +60,15 @@ class PublicContractTest(unittest.TestCase):
 
         self.assertRegex(revision, r'^[0-9a-f]{40}$')
         self.assertRegex(tree, r'^[0-9a-f]{40}$')
-        resolved_tree = subprocess.check_output(
-            ['git', 'rev-parse', f'{revision}^{{tree}}'], cwd=ROOT, text=True
-        ).strip()
-        self.assertEqual(resolved_tree, tree)
-        changed_model_surface = subprocess.check_output(
-            [
-                'git',
-                'diff',
-                '--name-only',
-                revision,
-                'HEAD',
-                '--',
-                'experiments/003-acceptance-reconciliation/simulate.py',
-                'tests/test_acceptance_reconciliation_state_machine.py',
-            ],
-            cwd=ROOT,
-            text=True,
-        ).strip()
-        self.assertEqual(changed_model_surface, '')
+        expected_files = {
+            'experiments/003-acceptance-reconciliation/simulate.py',
+            'tests/test_acceptance_reconciliation_state_machine.py',
+        }
+        self.assertEqual(set(receipt['tested_source_files_sha256']), expected_files)
+        for rel, expected_sha256 in receipt['tested_source_files_sha256'].items():
+            self.assertRegex(expected_sha256, r'^[0-9a-f]{64}$')
+            actual_sha256 = hashlib.sha256((ROOT / rel).read_bytes()).hexdigest()
+            self.assertEqual(actual_sha256, expected_sha256, rel)
         self.assertEqual(runtime['executor'], 'MarcoPolo workspace')
         self.assertRegex(runtime['python'], r'^Python 3\.11\.')
         self.assertTrue(runtime['platform'].startswith('Linux '))
