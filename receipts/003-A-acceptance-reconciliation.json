@@ -10,7 +10,8 @@
     "write_retry_with_same_idempotency_key_does_not_duplicate_provider_write",
     "nested_payload_mutation_cannot_silently_rewrite_transaction_provider_or_projection_snapshots",
     "reconciliation_uses_the_payload_snapshot_that_passed_readback",
-    "verified_payload_snapshot_is_immutable_until_reconciliation"
+    "verified_payload_snapshot_is_immutable_until_reconciliation",
+    "non_json_payload_types_are_rejected_at_transaction_boundary"
   ],
   "issue": "3",
   "probe": "003-A-acceptance-reconciliation",
@@ -27,17 +28,17 @@
   "schema": "theseus.memory-provider-lab.research-receipt.v1",
   "status": "PASS_LOCAL_REFERENCE_MODEL",
   "tested_source_files_sha256": {
-    "experiments/003-acceptance-reconciliation/simulate.py": "b80001467f65466770cb7b73eabf0adfd94ae9082b8c83e38c810cb65a0f8fbd",
-    "tests/test_acceptance_reconciliation_state_machine.py": "8e34363a3dd658df40f1eb2d25fc9131228ebc9d3462c7022c4c1a1cb4844f6e"
+    "experiments/003-acceptance-reconciliation/simulate.py": "8681085c4818e5880774db85deadff352f1e04f3f63a473099c101ce7185acf5",
+    "tests/test_acceptance_reconciliation_state_machine.py": "657ce206d8b709179f2c409f0da77e2601df1aa576a6d8f92e663e1be23b245d"
   },
-  "tested_source_revision": "55e497437204d46c3562449ce73da8ecf06bf2e9",
-  "tested_source_tree": "60689fae2910ead8d874fa5d5948333ac571760d",
-  "tests": 11,
-  "tests_passed": 11,
+  "tested_source_revision": "83c025de60cc5218c613db1af385f1b8ecc9fd4f",
+  "tested_source_tree": "3b095b116141a2609e440cf94dac14bcc51efaea",
+  "tests": 12,
+  "tests_passed": 12,
   "transition_table_version": "0.1",
   "verification": {
-    "full_repository_tests": "23/23 PASS",
+    "full_repository_tests": "25/25 PASS",
     "repository_verifier": "PASS",
-    "state_machine_tests": "11/11 PASS"
+    "state_machine_tests": "12/12 PASS"
   }
 }
