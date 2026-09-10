@@ -48,6 +48,11 @@ INFERRED_PREFERENCE
 
 This is a research policy carried forward from issue #1, not a universal provider rule.
 
+## Payload boundary
+
+The reference transaction accepts only JSON-compatible object payloads: string-keyed objects, arrays, strings, finite numbers, booleans, and null. Python-specific mutable/container types such as tuples are rejected at `start()` rather than silently normalized into a different representation.
+
+
 ## Failure observations encoded by tests
 
 | Injected failure | Provider content | Readback verified | Projection updated | Safe-source semantic state |

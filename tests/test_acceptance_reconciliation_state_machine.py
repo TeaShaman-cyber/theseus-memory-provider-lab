@@ -184,5 +184,16 @@ class AcceptanceReconciliationStateMachineTest(unittest.TestCase):
         self.assertEqual(projection.records['mem-11'], {'claim': {'text': 'original'}})
 
 
+    def test_start_rejects_non_json_payload_types(self):
+        with self.assertRaises(mod.TransitionError):
+            mod.start(
+                'tx-12',
+                'mem-12',
+                'USER_ASSERTED',
+                'idem-12',
+                {'claim': ({'text': 'original'},)},
+            )
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -2,6 +2,7 @@ from collections.abc import Mapping
 from copy import deepcopy
 from dataclasses import dataclass, replace
 from enum import Enum
+from math import isfinite
 from types import MappingProxyType
 
 
@@ -46,6 +47,21 @@ class Attempt:
     semantic_state: SemanticState
     transaction_state: TransactionState
     verified_payload: Mapping | None = None
+
+
+def _is_json_value(value):
+    if value is None or isinstance(value, (str, bool, int)):
+        return True
+    if isinstance(value, float):
+        return isfinite(value)
+    if isinstance(value, list):
+        return all(_is_json_value(item) for item in value)
+    if isinstance(value, dict):
+        return all(
+            isinstance(key, str) and _is_json_value(item)
+            for key, item in value.items()
+        )
+    return False
 
 
 def _freeze_payload(value):
@@ -100,6 +116,8 @@ TRANSITIONS = {
 
 
 def start(txid: str, record_id: str, source_class: str, idempotency_key: str, payload: dict) -> Attempt:
+    if not isinstance(payload, dict) or not _is_json_value(payload):
+        raise TransitionError('payload must be a JSON-compatible object')
     return Attempt(
         txid=txid,
         record_id=record_id,
