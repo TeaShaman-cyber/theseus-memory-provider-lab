@@ -128,7 +128,7 @@ class AcceptanceReconciliationStateMachineTest(unittest.TestCase):
         self.assertEqual(provider.records['mem-8'], {'claim': {'text': 'original'}})
         self.assertEqual(
             provider.idempotency['idem-8'],
-            ('mem-8', {'claim': {'text': 'original'}}),
+            ('mem-8', 'USER_ASSERTED', {'claim': {'text': 'original'}}),
         )
 
         verified = mod.verify_readback(attempt, provider)
@@ -266,12 +266,46 @@ class AcceptanceReconciliationStateMachineTest(unittest.TestCase):
         self.assertEqual(verified.transaction_state, mod.TransactionState.READBACK_MISMATCH)
 
         provider2 = mod.ReferenceProvider()
-        provider2.idempotency['idem-19'] = ('mem-19', {1: 'v'})
+        provider2.idempotency['idem-19'] = ('mem-19', 'USER_ASSERTED', {1: 'v'})
         other = mod.accept(mod.validate(mod.start(
             'tx-19', 'mem-19', 'USER_ASSERTED', 'idem-19', {'1': 'v'}
         )))
         with self.assertRaises(mod.TransitionError):
             mod.persist(other, provider2)
+
+
+    def test_idempotency_key_cannot_change_source_class(self):
+        provider = mod.ReferenceProvider()
+        derived = mod.accept(mod.validate(mod.start(
+            'tx-20', 'mem-20', 'ASSISTANT_DERIVED', 'idem-20', {'claim': 'same'}
+        )))
+        mod.persist(derived, provider)
+
+        asserted = mod.accept(mod.validate(mod.start(
+            'tx-21', 'mem-20', 'USER_ASSERTED', 'idem-20', {'claim': 'same'}
+        )))
+        with self.assertRaises(mod.TransitionError):
+            mod.persist(asserted, provider)
+
+    def test_stale_verified_attempt_cannot_replace_newer_projection(self):
+        provider = mod.ReferenceProvider()
+        projection = mod.DerivedProjection()
+
+        old = mod.accept(mod.validate(mod.start(
+            'tx-22', 'mem-22', 'USER_ASSERTED', 'idem-22-old', {'claim': 'old'}
+        )))
+        old = mod.verify_readback(mod.persist(old, provider), provider)
+
+        new = mod.accept(mod.validate(mod.start(
+            'tx-23', 'mem-22', 'USER_ASSERTED', 'idem-22-new', {'claim': 'new'}
+        )))
+        new = mod.verify_readback(mod.persist(new, provider), provider)
+        new = mod.reconcile(new, projection)
+        self.assertEqual(projection.records['mem-22'], {'claim': 'new'})
+
+        with self.assertRaises(mod.TransitionError):
+            mod.reconcile(old, projection)
+        self.assertEqual(projection.records['mem-22'], {'claim': 'new'})
 
 
 
