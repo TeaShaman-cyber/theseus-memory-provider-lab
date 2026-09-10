@@ -1,3 +1,4 @@
+import json
 from collections.abc import Mapping
 from copy import deepcopy
 from dataclasses import dataclass, replace
@@ -64,6 +65,14 @@ def _is_json_value(value):
     return False
 
 
+def _json_equal(left, right):
+    return json.dumps(
+        left, sort_keys=True, separators=(',', ':'), ensure_ascii=False, allow_nan=False
+    ) == json.dumps(
+        right, sort_keys=True, separators=(',', ':'), ensure_ascii=False, allow_nan=False
+    )
+
+
 def _freeze_payload(value):
     if isinstance(value, dict):
         return MappingProxyType({key: _freeze_payload(item) for key, item in value.items()})
@@ -91,7 +100,9 @@ class ReferenceProvider:
         payload = _thaw_payload(attempt.payload)
         candidate = (attempt.record_id, deepcopy(payload))
         if prior is not None:
-            if prior != candidate:
+            same_record = prior[0] == candidate[0]
+            same_payload = _json_equal(prior[1], candidate[1])
+            if not same_record or not same_payload:
                 raise TransitionError('idempotency key reused for different payload')
             return
         self.records[attempt.record_id] = deepcopy(payload)
@@ -167,7 +178,7 @@ def verify_readback(
         raise TransitionError(f'readback forbidden from {attempt.transaction_state.value}')
     observed = provider.records.get(attempt.record_id)
     expected = _thaw_payload(attempt.payload)
-    if mismatch or observed != expected:
+    if mismatch or observed is None or not _json_equal(observed, expected):
         return replace(attempt, transaction_state=TransactionState.READBACK_MISMATCH)
     verified = _advance(attempt, 'readback')
     semantic_state = (

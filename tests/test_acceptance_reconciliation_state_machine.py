@@ -220,5 +220,24 @@ class AcceptanceReconciliationStateMachineTest(unittest.TestCase):
 
 
 
+    def test_json_comparison_distinguishes_boolean_from_number(self):
+        provider = mod.ReferenceProvider()
+        attempt = mod.accept(mod.validate(mod.start(
+            'tx-14', 'mem-14', 'USER_ASSERTED', 'idem-14', {'claim': True}
+        )))
+        persisted = mod.persist(attempt, provider)
+        provider.records['mem-14'] = {'claim': 1}
+
+        verified = mod.verify_readback(persisted, provider)
+        self.assertEqual(verified.transaction_state, mod.TransactionState.READBACK_MISMATCH)
+
+        other = mod.accept(mod.validate(mod.start(
+            'tx-15', 'mem-14', 'USER_ASSERTED', 'idem-14', {'claim': 1}
+        )))
+        with self.assertRaises(mod.TransitionError):
+            mod.persist(other, provider)
+
+
+
 if __name__ == '__main__':
     unittest.main()
