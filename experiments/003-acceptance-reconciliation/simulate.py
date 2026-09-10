@@ -47,6 +47,7 @@ class Attempt:
     payload: Mapping
     semantic_state: SemanticState
     transaction_state: TransactionState
+    persisted_record_version: int | None = None
     verified_payload: Mapping | None = None
     verified_record_version: int | None = None
 
@@ -177,8 +178,9 @@ def persist(attempt: Attempt, provider: ReferenceProvider, *, fail: bool = False
         raise TransitionError(f'persist forbidden from {attempt.transaction_state.value}')
     if fail:
         return replace(attempt, transaction_state=TransactionState.WRITE_FAILED)
-    provider.write(attempt)
-    return _advance(attempt, 'persist')
+    persisted_record_version = provider.write(attempt)
+    persisted = _advance(attempt, 'persist')
+    return replace(persisted, persisted_record_version=persisted_record_version)
 
 
 def verify_readback(
@@ -192,7 +194,14 @@ def verify_readback(
     observed = provider.records.get(attempt.record_id)
     observed_version = provider.record_versions.get(attempt.record_id)
     expected = _thaw_payload(attempt.payload)
-    if mismatch or observed is None or observed_version is None or not _json_equal(observed, expected):
+    if (
+        mismatch
+        or observed is None
+        or observed_version is None
+        or attempt.persisted_record_version is None
+        or observed_version != attempt.persisted_record_version
+        or not _json_equal(observed, expected)
+    ):
         return replace(attempt, transaction_state=TransactionState.READBACK_MISMATCH)
     verified = _advance(attempt, 'readback')
     semantic_state = (

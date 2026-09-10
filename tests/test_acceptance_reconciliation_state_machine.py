@@ -308,6 +308,36 @@ class AcceptanceReconciliationStateMachineTest(unittest.TestCase):
         self.assertEqual(projection.records['mem-22'], {'claim': 'new'})
 
 
+    def test_readback_must_match_the_version_created_by_this_persist(self):
+        provider = mod.ReferenceProvider()
+
+        older = mod.accept(mod.validate(mod.start(
+            'tx-24', 'mem-24', 'USER_ASSERTED', 'idem-24-old', {'claim': 'same'}
+        )))
+        older = mod.persist(older, provider)
+
+        newer = mod.accept(mod.validate(mod.start(
+            'tx-25', 'mem-24', 'ASSISTANT_DERIVED', 'idem-24-new', {'claim': 'same'}
+        )))
+        newer = mod.persist(newer, provider)
+
+        self.assertEqual(provider.record_versions['mem-24'], 2)
+        verified_older = mod.verify_readback(older, provider)
+        self.assertEqual(
+            verified_older.transaction_state,
+            mod.TransactionState.READBACK_MISMATCH,
+        )
+        self.assertEqual(verified_older.semantic_state, mod.SemanticState.PENDING)
+        self.assertIsNone(verified_older.verified_record_version)
+
+        verified_newer = mod.verify_readback(newer, provider)
+        self.assertEqual(
+            verified_newer.transaction_state,
+            mod.TransactionState.READBACK_VERIFIED,
+        )
+        self.assertEqual(verified_newer.verified_record_version, 2)
+
+
 
 if __name__ == '__main__':
     unittest.main()
