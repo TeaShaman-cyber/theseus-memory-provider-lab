@@ -1,0 +1,53 @@
+{
+  "date": "2026-09-10",
+  "epistemic_boundary": "Synthetic in-memory reference model only; no production provider, host callback, or distributed persistence claim.",
+  "invariants_observed": [
+    "write_failure_does_not_imply_persistence",
+    "readback_mismatch_does_not_imply_verification_or_activation",
+    "reconciliation_failure_does_not_erase_verified_persistence",
+    "assistant_derived_can_be_reconciled_while_remaining_semantically_pending",
+    "reconcile_before_verified_readback_is_forbidden",
+    "write_retry_with_same_idempotency_key_does_not_duplicate_provider_write",
+    "nested_payload_mutation_cannot_silently_rewrite_transaction_provider_or_projection_snapshots",
+    "reconciliation_uses_the_payload_snapshot_that_passed_readback",
+    "verified_payload_snapshot_is_immutable_until_reconciliation",
+    "non_json_payload_types_are_rejected_at_transaction_boundary",
+    "accepted_payload_snapshot_is_immutable_through_write_failure_and_retry",
+    "exact_json_comparison_distinguishes_boolean_and_numeric_payload_values",
+    "validated_candidate_snapshot_is_immutable_before_acceptance",
+    "validation_rejects_non_json_mutation_before_acceptance",
+    "exact_json_comparison_rejects_non_string_mapping_keys",
+    "idempotency_operation_identity_includes_source_class",
+    "provider_record_versions_order_projection_updates",
+    "stale_verified_attempt_cannot_replace_newer_projection",
+    "readback_version_must_match_the_version_returned_by_this_persist_operation"
+  ],
+  "issue": "3",
+  "probe": "003-A-acceptance-reconciliation",
+  "publication": {
+    "private_correspondence_included": false,
+    "published_in": "theseus-memory-provider-lab",
+    "sanitized": true
+  },
+  "runtime_identity": {
+    "executor": "MarcoPolo workspace",
+    "platform": "Linux 6.12.68-92.122.amzn2023.x86_64 x86_64",
+    "python": "Python 3.11.16"
+  },
+  "schema": "theseus.memory-provider-lab.research-receipt.v1",
+  "status": "PASS_LOCAL_REFERENCE_MODEL",
+  "tested_source_files_sha256": {
+    "experiments/003-acceptance-reconciliation/simulate.py": "be4d8c576997a00262d9fb45b1d1ac5c8087948d9f062570e7e2b6bd841e92cc",
+    "tests/test_acceptance_reconciliation_state_machine.py": "fddbe79d2e5d8ec0f20dbe4d52662913f18e88e101bf93917b31fdda6c69011b"
+  },
+  "tested_source_revision": "ad19f285cb2f18102390b52b8e60c34f68518157",
+  "tested_source_tree": "4301ec1a098e96fb63c3e49d09931ba524ffc43d",
+  "tests": 19,
+  "tests_passed": 19,
+  "transition_table_version": "0.1",
+  "verification": {
+    "state_machine_tests": "19/19 PASS",
+    "full_repository_tests": "32/32 PASS",
+    "repository_verifier": "PASS"
+  }
+}
