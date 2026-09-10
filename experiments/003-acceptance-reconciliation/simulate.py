@@ -66,6 +66,8 @@ def _is_json_value(value):
 
 
 def _json_equal(left, right):
+    if not _is_json_value(left) or not _is_json_value(right):
+        return False
     return json.dumps(
         left, sort_keys=True, separators=(',', ':'), ensure_ascii=False, allow_nan=False
     ) == json.dumps(
@@ -149,12 +151,14 @@ def _advance(attempt: Attempt, operation: str) -> Attempt:
 
 
 def validate(attempt: Attempt) -> Attempt:
-    return _advance(attempt, 'validate')
+    if not isinstance(attempt.payload, dict) or not _is_json_value(attempt.payload):
+        raise TransitionError('payload must remain a JSON-compatible object through validation')
+    validated = _advance(attempt, 'validate')
+    return replace(validated, payload=_freeze_payload(validated.payload))
 
 
 def accept(attempt: Attempt) -> Attempt:
-    accepted = _advance(attempt, 'accept')
-    return replace(accepted, payload=_freeze_payload(accepted.payload))
+    return _advance(attempt, 'accept')
 
 
 def persist(attempt: Attempt, provider: ReferenceProvider, *, fail: bool = False) -> Attempt:

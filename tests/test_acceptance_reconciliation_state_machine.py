@@ -238,6 +238,42 @@ class AcceptanceReconciliationStateMachineTest(unittest.TestCase):
             mod.persist(other, provider)
 
 
+    def test_validate_freezes_candidate_and_rejects_non_json_mutation(self):
+        attempt = mod.start(
+            'tx-16', 'mem-16', 'USER_ASSERTED', 'idem-16',
+            {'claim': {'text': 'candidate'}}
+        )
+        attempt.payload['claim']['extra'] = {'bad'}
+        with self.assertRaises(mod.TransitionError):
+            mod.validate(attempt)
+
+        clean = mod.validate(mod.start(
+            'tx-17', 'mem-17', 'USER_ASSERTED', 'idem-17',
+            {'claim': {'text': 'validated'}}
+        ))
+        with self.assertRaises(TypeError):
+            clean.payload['claim']['text'] = 'mutated-after-validate'
+
+    def test_exact_json_comparison_rejects_non_string_provider_keys(self):
+        provider = mod.ReferenceProvider()
+        attempt = mod.accept(mod.validate(mod.start(
+            'tx-18', 'mem-18', 'USER_ASSERTED', 'idem-18', {'1': 'v'}
+        )))
+        persisted = mod.persist(attempt, provider)
+        provider.records['mem-18'] = {1: 'v'}
+
+        verified = mod.verify_readback(persisted, provider)
+        self.assertEqual(verified.transaction_state, mod.TransactionState.READBACK_MISMATCH)
+
+        provider2 = mod.ReferenceProvider()
+        provider2.idempotency['idem-19'] = ('mem-19', {1: 'v'})
+        other = mod.accept(mod.validate(mod.start(
+            'tx-19', 'mem-19', 'USER_ASSERTED', 'idem-19', {'1': 'v'}
+        )))
+        with self.assertRaises(mod.TransitionError):
+            mod.persist(other, provider2)
+
+
 
 if __name__ == '__main__':
     unittest.main()
