@@ -1,0 +1,311 @@
+{
+  "schema_version": "001-E-retain-protocol-v9",
+  "status": "METHODOLOGY_FROZEN_EXECUTION_BLOCKED_BY_OBSERVABILITY",
+  "issue": 5,
+  "platform_scope_issue": 7,
+  "purpose": "Add deterministic fixtures, rerun isolation, fresh-session verification, and downstream application actions without changing frozen 001-E stimuli.",
+  "global_rules": {
+    "stimulus_source": "evals.json",
+    "stimulus_must_match_frozen_query_exactly": true,
+    "routing_turn_forbids_forced_provider_calls": true,
+    "routing_turn_forbids_provider_hinting": true,
+    "fresh_session_must_not_restate_retained_payload": true,
+    "functional_success_does_not_imply_provider_attribution": true,
+    "strong_retain_readback_not_applicable_is_forbidden": true,
+    "hidden_host_stage_disposition": "UNKNOWN",
+    "synthetic_non_sensitive_fixtures_only": true,
+    "unique_canary_per_run": true,
+    "preflight_canary_search_is_non_routing": true,
+    "forced_postwrite_provider_readback_is_non_routing": true,
+    "disposable_project_per_strong_retain_run": true,
+    "black_box_internal_mechanisms_are_not_inferred": true,
+    "five_whys_stop_at_first_unobservable_discriminator": true,
+    "preflight_must_run_in_separate_diagnostic_session": true,
+    "fresh_routing_conversation_after_preflight": true,
+    "preflight_search_miss_does_not_prove_absence": true,
+    "forced_diagnostic_probe_cannot_satisfy_automatic_readback": true,
+    "retrieval_evidence_requires_complete_retained_proposition": true,
+    "final_answer_source_confirmation_unavailable_without_host_telemetry_or_hard_isolation": true,
+    "automatic_readback_requires_distinct_provider_read_operation": true,
+    "provider_retrieval_requires_returned_persisted_record": true,
+    "echo_or_request_trace_is_not_retrieval_evidence": true,
+    "readback_proposition_must_be_in_returned_stored_content": true,
+    "fresh_session_provider_evidence_requires_read_or_search": true,
+    "fresh_session_write_cannot_count_as_retrieval": true,
+    "fresh_session_qualifying_record_must_predate_verification_or_match_scored_write_receipt": true,
+    "verification_session_created_records_cannot_satisfy_provider_retrieval": true,
+    "complete_proposition_requires_preserved_qualification_evidence": true,
+    "retrieval_qualification_binds_exact_returned_content_version": true,
+    "predates_verification_requires_common_clock_or_calibrated_uncertainty": true,
+    "stable_record_identity_or_record_created_at_is_insufficient_for_mutable_content": true,
+    "host_runtime_clock_alone_is_not_provider_temporal_evidence": true,
+    "match_scored_write_requires_observed_content_snapshot_or_semantics": true,
+    "provider_boundary_must_be_captured_before_verification_session_and_first_provider_operation": true,
+    "opaque_token_name_alone_does_not_prove_immutability_or_content_addressing": true,
+    "late_provider_boundary_cannot_qualify_predates_verification": true
+  },
+  "execution_arms": [
+    {
+      "id": "PRODUCTION_ROUTING",
+      "routing_scored": true,
+      "project_boundary": "ordinary environment",
+      "provider_hinting": "forbidden",
+      "lifecycle_scored": false,
+      "reason_lifecycle_ineligible": "ambient ordinary environment is intentionally uncontrolled; use only for automatic-routing observations"
+    },
+    {
+      "id": "CLEAN_PROJECT_ROUTING",
+      "routing_scored": true,
+      "project_boundary": "new disposable project; project-only memory; zero files; no payload-bearing project instructions",
+      "provider_hinting": "forbidden",
+      "known_confounds": [
+        "native project memory",
+        "installed plugins/apps/skills not technically scoped per project"
+      ]
+    },
+    {
+      "id": "SOFT_PROVIDER_SCOPE",
+      "routing_scored": false,
+      "project_boundary": "new disposable project; project-only memory; project instructions request ButlerBrain-only external persistent memory",
+      "reason_non_routing": "project instructions change router input and are not an enforceable capability boundary"
+    },
+    {
+      "id": "HARD_PROVIDER_ISOLATION",
+      "routing_scored": false,
+      "status": "BLOCKED",
+      "blocking_reason": "no observed/documented per-project plugin/app/skill capability allowlist on tested ChatGPT Project surface"
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "explicit-user-fact",
+      "source_class": "USER_ASSERTED",
+      "fixture": {
+        "type": "preceding_user_turn",
+        "prompt_template": "Синтетический контекст теста: scope_marker={scope_marker}. Это только идентификатор области текущего теста, не требование к формату отчёта. Пока ничего не сохраняй.",
+        "parameters": {
+          "scope_marker": "GENERATE:001E-REPORT-SCOPE-{unique_run_suffix}"
+        },
+        "environment_requirements": [
+          "new disposable project",
+          "project-only memory",
+          "zero project files",
+          "no payload-bearing project instructions in routing-scored arms",
+          "preflight provider search runs in a separate diagnostic session before this routing conversation"
+        ],
+        "validity_rule": "Generate a new provider-visible scope_marker. A preflight hit invalidates the marker; a preflight miss is only NOT_FOUND_BY_THIS_QUERY and does not prove global absence."
+      },
+      "stimulus": "Запомни: для этого проекта отчёты должны быть короткими и с provenance.",
+      "provider_readback": {
+        "automatic_only_for_scored_readback": true,
+        "pass_conditions": [
+          "observable automatic post-write result contains the requirement that reports are short",
+          "observable automatic post-write result contains the requirement that reports include provenance",
+          "the same observable result binds the complete formatting proposition to the current scope_marker"
+        ],
+        "forced_diagnostic_rule": "A later forced search is recorded only as diagnostic_persistence_probe and cannot replace automatic readback.",
+        "unknown_rule": "If a distinct provider read operation and distinguishable persisted record/content are not observable, provider_postwrite_readback is UNKNOWN and lifecycle acceptance is inconclusive.",
+        "operation_requirements": [
+          "PASS requires an observable provider read operation distinct from the write/save operation",
+          "the returned stored record/content itself contains the complete retained proposition and current run marker; identity-only results, request text, trace text, or echoes cannot be combined to satisfy this"
+        ]
+      },
+      "verification": {
+        "session": "fresh_same_project",
+        "prompt": "Какие сохранённые требования к формату отчётов действуют для этого проекта?",
+        "pass_conditions": [
+          "retrieves requirement that reports are short",
+          "retrieves requirement that reports include provenance"
+        ],
+        "attribution_rule": "Functional PASS and complete provider retrieval are separate observations; final-answer source remains CONFOUNDED/UNKNOWN without host contribution telemetry or hard isolation.",
+        "provider_evidence_pass_conditions": [
+          "retrieval-time ButlerBrain result contains the complete short+provenance proposition",
+          "the result binds that proposition to the current scope_marker"
+        ],
+        "provider_record_requirements": [
+          "provider evidence comes from an observable ButlerBrain read/search operation distinct from any fresh-session write/save",
+          "the returned persisted record/content itself contains the complete retained proposition plus required current-run marker/provenance",
+          "returned persisted record/content is distinguishable from retrieval request input; invocation arguments, trace text, echoes, or a new write result are not retrieval evidence",
+          "the exact returned content version qualifies only if either: (a) a provider-side/common-clock boundary captured before opening the verification session and before its first provider operation, plus provider-generated version/update metadata, proves the exact returned content predates verification; or (b) the returned content snapshot/digest equals the scored-write snapshot/digest, or documented/observed provider semantics prove an immutable content-addressed/version-changing token and the exact token matches; opaque token names, stable record/receipt IDs, late boundaries, record-level created_at, or uncalibrated host/runtime time are insufficient; otherwise provider_retrieval_evidence is UNKNOWN"
+        ]
+      },
+      "application": {
+        "session": "new_fresh_same_project",
+        "prompt_template": "Сформируй отчёт по синтетическому результату: run_id={application_run_id}; status=PASS; receipt_ref={receipt_ref}.",
+        "pass_conditions": [
+          "report is at most two non-empty lines",
+          "report preserves receipt_ref as evidence/provenance"
+        ],
+        "matched_control": "Run the identical prompt once in an otherwise matched disposable control project with no retain stimulus. Both-pass is NON_DIAGNOSTIC; any single-pair difference is INCONCLUSIVE_SINGLE_PAIR, not causal PASS.",
+        "attribution_note": "Record functional correctness separately from memory-effect evidence; neither confirms final-answer provider causality."
+      }
+    },
+    {
+      "case_id": "verified-external-effect",
+      "source_class": "EXTERNAL_VERIFIED",
+      "fixture": {
+        "type": "preceding_user_turn",
+        "prompt_template": "Синтетический контекст для следующего шага: workflow run_id={run_id}; local SHA={sha}; independently observed remote SHA={sha}. Это временный контекст теста; пока ничего не сохраняй.",
+        "parameters": {
+          "run_id": "GENERATE:001E-WORKFLOW-{unique_run_suffix}",
+          "sha": "GENERATE:40_HEX_PER_RUN"
+        },
+        "validity_rule": "Generate both values per run. Preflight provider search occurs in a separate diagnostic session and must not return either canary; a miss does not prove global absence. Start a fresh routing conversation, send the fixture, then the frozen stimulus."
+      },
+      "stimulus": "Workflow завершился успешно, а remote SHA независимо совпал. Зафиксируй этот результат как опыт.",
+      "provider_readback": {
+        "automatic_only_for_scored_readback": true,
+        "pass_conditions": [
+          "retrieves exact generated run_id",
+          "retrieves exact generated SHA",
+          "contains the successful workflow outcome introduced only by the frozen stimulus",
+          "preserves independent remote-SHA verification provenance"
+        ],
+        "forced_diagnostic_rule": "A later forced search is diagnostic_persistence_probe only and cannot satisfy automatic readback.",
+        "operation_requirements": [
+          "PASS requires an observable provider read operation distinct from the write/save operation",
+          "the returned stored record/content itself contains the complete retained proposition and current run marker; identity-only results, request text, trace text, or echoes cannot be combined to satisfy this"
+        ],
+        "unknown_rule": "If a distinct provider read operation and distinguishable persisted record/content are not observable, provider_postwrite_readback is UNKNOWN and lifecycle acceptance is inconclusive."
+      },
+      "verification": {
+        "session": "fresh_same_execution_boundary",
+        "prompt": "Какой результат последнего синтетического workflow я просил сохранить и чем была подтверждена его достоверность? Назови его run_id и SHA.",
+        "pass_conditions": [
+          "retrieves exact current-run run_id",
+          "retrieves exact current-run SHA",
+          "retrieves successful workflow outcome",
+          "retrieves independent remote-SHA match as verification provenance",
+          "does not downgrade the result to merely unverified"
+        ],
+        "attribution_rule": "Complete provider retrieval is observable evidence of provider retrieval, not proof that hidden host logic used it for the final answer.",
+        "provider_evidence_pass_conditions": [
+          "retrieval-time ButlerBrain result contains exact current-run run_id and SHA",
+          "retrieval-time ButlerBrain result contains successful workflow outcome",
+          "retrieval-time ButlerBrain result contains independent remote-SHA verification provenance"
+        ],
+        "provider_record_requirements": [
+          "provider evidence comes from an observable ButlerBrain read/search operation distinct from any fresh-session write/save",
+          "the returned persisted record/content itself contains the complete retained proposition plus required current-run marker/provenance",
+          "returned persisted record/content is distinguishable from retrieval request input; invocation arguments, trace text, echoes, or a new write result are not retrieval evidence",
+          "the exact returned content version qualifies only if either: (a) a provider-side/common-clock boundary captured before opening the verification session and before its first provider operation, plus provider-generated version/update metadata, proves the exact returned content predates verification; or (b) the returned content snapshot/digest equals the scored-write snapshot/digest, or documented/observed provider semantics prove an immutable content-addressed/version-changing token and the exact token matches; opaque token names, stable record/receipt IDs, late boundaries, record-level created_at, or uncalibrated host/runtime time are insufficient; otherwise provider_retrieval_evidence is UNKNOWN"
+        ]
+      },
+      "application": {
+        "session": "new_fresh_same_execution_boundary",
+        "prompt": "Составь однострочную запись журнала по сохранённому последнему синтетическому workflow-результату.",
+        "pass_conditions": [
+          "journal line states exact current-run run_id and SHA",
+          "journal line states that the workflow completed successfully",
+          "journal line preserves independent verification provenance"
+        ]
+      }
+    },
+    {
+      "case_id": "user-approved-decision",
+      "source_class": "USER_APPROVED_DECISION",
+      "fixture": {
+        "type": "preceding_user_turn",
+        "prompt_template": "Синтетический контекст для следующего шага. Есть Design A: хранить состояние только как Markdown. Есть Design B [{design_canary}]: хранить каноническое состояние как JSON, а Markdown строить как проекцию. Для этого теста предложен Design B, потому что каноническое состояние должно быть машинно проверяемым. Это предложение ещё не утверждено пользователем.",
+        "parameters": {
+          "design_canary": "GENERATE:001E-DESIGN-{unique_run_suffix}"
+        },
+        "validity_rule": "Generate a new design_canary. Preflight search occurs in a separate diagnostic session; a hit invalidates the canary, while a miss does not prove global absence. Start a fresh routing conversation before fixture+stimulus."
+      },
+      "stimulus": "Да, принимаю этот дизайн. Используем именно его дальше.",
+      "provider_readback": {
+        "automatic_only_for_scored_readback": true,
+        "pass_conditions": [
+          "retrieves exact current-run design_canary",
+          "contains the approval event introduced only by the frozen stimulus: user approved Design B for continued use",
+          "preserves machine-verifiability rationale"
+        ],
+        "forced_diagnostic_rule": "A later forced search is diagnostic_persistence_probe only and cannot satisfy automatic readback.",
+        "operation_requirements": [
+          "PASS requires an observable provider read operation distinct from the write/save operation",
+          "the returned stored record/content itself contains the complete retained proposition and current run marker; identity-only results, request text, trace text, or echoes cannot be combined to satisfy this"
+        ],
+        "unknown_rule": "If a distinct provider read operation and distinguishable persisted record/content are not observable, provider_postwrite_readback is UNKNOWN and lifecycle acceptance is inconclusive."
+      },
+      "verification": {
+        "session": "fresh_same_execution_boundary",
+        "prompt": "Какой вариант из последнего синтетического выбора я утвердил, какой у него идентификатор и почему?",
+        "pass_conditions": [
+          "identifies Design B as user-approved",
+          "retrieves exact current-run design_canary",
+          "preserves rationale that canonical state should be machine-verifiable",
+          "distinguishes proposal from user approval"
+        ],
+        "attribution_rule": "Complete provider retrieval is observable evidence of provider retrieval, not proof that hidden host logic used it for the final answer.",
+        "provider_evidence_pass_conditions": [
+          "retrieval-time ButlerBrain result contains exact current-run design_canary",
+          "retrieval-time ButlerBrain result contains user approval of Design B for continued use",
+          "retrieval-time ButlerBrain result preserves machine-verifiability rationale"
+        ],
+        "provider_record_requirements": [
+          "provider evidence comes from an observable ButlerBrain read/search operation distinct from any fresh-session write/save",
+          "the returned persisted record/content itself contains the complete retained proposition plus required current-run marker/provenance",
+          "returned persisted record/content is distinguishable from retrieval request input; invocation arguments, trace text, echoes, or a new write result are not retrieval evidence",
+          "the exact returned content version qualifies only if either: (a) a provider-side/common-clock boundary captured before opening the verification session and before its first provider operation, plus provider-generated version/update metadata, proves the exact returned content predates verification; or (b) the returned content snapshot/digest equals the scored-write snapshot/digest, or documented/observed provider semantics prove an immutable content-addressed/version-changing token and the exact token matches; opaque token names, stable record/receipt IDs, late boundaries, record-level created_at, or uncalibrated host/runtime time are insufficient; otherwise provider_retrieval_evidence is UNKNOWN"
+        ]
+      },
+      "application": {
+        "session": "new_fresh_same_execution_boundary",
+        "prompt": "Для последнего синтетического выбора из этого эксперимента укажи, можно ли уже продолжать работу. Если да, назови вариант и один следующий технический шаг; если нет — скажи, какого решения не хватает.",
+        "pass_conditions": [
+          "response explicitly identifies Design B as user-approved",
+          "next step is compatible with JSON canonical state and Markdown projection",
+          "response names the retained rationale",
+          "response identifies the current-run design_canary"
+        ]
+      }
+    }
+  ],
+  "minimum_execution_record": {
+    "required_fields": [
+      "case_id",
+      "run_id_or_unique_canary",
+      "execution_arm",
+      "project_identity_and_memory_mode",
+      "fixture_validity",
+      "preflight_provider_canary_search_and_diagnostic_session_identity",
+      "host_and_model_when_observable",
+      "auto_route_evidence",
+      "provider_calls_or_receipts_when_exposed",
+      "automatic_postwrite_readback_status",
+      "forced_diagnostic_persistence_probe_status",
+      "fresh_session_functional_readback_status",
+      "retrieval_time_provider_proposition_evidence",
+      "provider_boundary_captured_before_verification_session",
+      "provider_boundary_precedes_first_verification_provider_operation",
+      "scored_write_content_digest_or_snapshot",
+      "returned_content_digest_or_snapshot",
+      "content_version_semantics_evidence",
+      "verification_session_boundary_evidence",
+      "returned_content_version_identity_and_provider_metadata",
+      "qualification_path",
+      "qualification_evidence_including_clock_domain_or_exact_version_match",
+      "scored_write_immutable_version_token_when_exposed",
+      "clock_domain_calibration_and_uncertainty_when_using_predates",
+      "application_functional_result_and_control_disposition",
+      "competing_routes_or_confounders",
+      "final_answer_source_attribution",
+      "hard_invariant_violations"
+    ],
+    "qualification_path_values": [
+      "PREDATES_VERIFICATION",
+      "MATCHES_SCORED_WRITE",
+      "UNKNOWN"
+    ],
+    "qualification_evidence_rules": [
+      "PREDATES_VERIFICATION qualifies the exact returned content version only when a provider-side/common-clock boundary is preserved before opening the verification session and before its first provider operation, and provider-generated version/update metadata (or calibrated timing evidence with bounded uncertainty) makes the ordering unambiguous; a late boundary, record-level created_at, stable record id, or uncalibrated host/runtime timestamp is insufficient",
+      "MATCHES_SCORED_WRITE requires either exact equality between a scored-write stored-content snapshot/digest and the returned-content snapshot/digest, or documented/observed evidence that the provider token is immutable and content-addressed/version-changing plus exact equality of that token; an opaque token name, stable record id, or stable receipt id alone is insufficient",
+      "the exact returned content identity, scored and returned content snapshot/digest when available, provider token-semantics evidence when relied upon, and all supporting temporal/version comparisons must be preserved with the result",
+      "if a pre-verification provider boundary, content snapshot/digest equality, or proven immutable content-version semantics is unavailable or not preserved, qualification_path is UNKNOWN and provider_retrieval_evidence cannot be COMPLETE_PROPOSITION"
+    ]
+  },
+  "freeze_disposition": {
+    "rule": "No further speculative hardening without new observable provider/host evidence.",
+    "resume_trigger": "New ButlerBrain/OpenAI telemetry, documented content-version semantics, provider-side boundary evidence, or equivalent observable discriminator."
+  }
+}
