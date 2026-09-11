@@ -1,6 +1,6 @@
 # 001-E live execution runbook
 
-Status: `DRAFT / REVIEW REQUIRED`
+Status: `METHODOLOGY FROZEN / EXECUTION BLOCKED BY OBSERVABILITY`
 
 This document is an **additive execution protocol** for the frozen `001-E`
 corpus. It does not change `evals.json`, its expectations, or its hard metrics.
@@ -273,14 +273,19 @@ distinguishable from the retrieval request input. Request arguments, trace text,
 provider echoes, or a newly created write result cannot establish retrieval because
 hidden host context may already have placed the proposition into the request. The **exact returned content version** must additionally satisfy one of two guards:
 
-1. its provider-generated version/update metadata unambiguously predates the
-   verification boundary in a **common clock domain**, or preserved clock
-   calibration plus timestamp resolution/uncertainty proves the ordering; or
-2. its immutable provider version token exactly matches the immutable version token
-   preserved from the scored write.
+1. a provider-side/common-clock boundary is captured **before opening the
+   verification session and before its first provider operation**, and provider-
+   generated version/update metadata for the exact returned content version (or
+   calibrated timing evidence with bounded uncertainty) proves it predates that
+   boundary; or
+2. the scored-write stored-content snapshot/digest exactly equals the returned-
+   content snapshot/digest; alternatively, provider documentation or direct runtime
+   evidence proves that the compared token is immutable and content-addressed or
+   changes on every content mutation, and the exact token matches.
 
-A stable record ID, record-level `created_at`, receipt identity without immutable
-content-version equality, or an uncalibrated host/runtime timestamp is insufficient.
+An opaque token name, stable record/receipt ID, record-level `created_at`, a boundary
+captured after verification began, or an uncalibrated host/runtime timestamp is
+insufficient.
 If neither discriminator is available, `provider_retrieval_evidence` remains
 `UNKNOWN`. A canary alone, fixture-only
 content, an observed write, or an earlier forced provider search is insufficient.
@@ -426,6 +431,11 @@ forced diagnostic persistence-probe status
 fresh-session functional readback status
 retrieval-time provider proposition evidence
 verification_session_boundary_evidence
+provider_boundary_captured_before_verification_session
+provider_boundary_precedes_first_verification_provider_operation
+scored_write_content_digest_or_snapshot
+returned_content_digest_or_snapshot
+content_version_semantics_evidence
 returned_content_version_identity_and_provider_metadata
 scored_write_immutable_version_token_when_exposed
 clock_domain_calibration_and_uncertainty_when_using_predates
@@ -438,16 +448,29 @@ hard-invariant violations
 ```
 
 For `PREDATES_VERIFICATION`, qualify the **exact returned content version**, not
-the record container. Preserve a provider-side/common-clock verification boundary
-and provider-generated version/update metadata; if clocks differ, preserve
-calibration, timestamp resolution, and uncertainty sufficient to make ordering
-unambiguous. MarcoPolo/host/runtime time alone is not provider temporal evidence.
+the record container. Capture the provider-side/common-clock boundary before the
+verification session opens and before its first provider operation. Preserve
+provider-generated version/update metadata; if clocks differ, preserve calibration,
+timestamp resolution, and uncertainty sufficient to make ordering unambiguous.
+MarcoPolo/host/runtime time alone is not provider temporal evidence.
 
-For `MATCHES_SCORED_WRITE`, preserve an immutable provider content-version token
-from the scored write and require exact equality with the returned content version.
-A stable record ID or receipt ID that can survive mutation is insufficient. If
-these artifacts/comparisons are unavailable or not preserved,
+For `MATCHES_SCORED_WRITE`, prefer exact equality of the stored-content snapshot or
+digest observed at scored write/readback and fresh retrieval. An opaque provider
+token qualifies only when documentation or direct runtime evidence establishes that
+it is immutable and content-addressed, or changes on every content mutation. A token
+name, stable record ID, or receipt ID alone is insufficient.
+
+If these artifacts/comparisons are unavailable or not preserved,
 `qualification_path = UNKNOWN` and `provider_retrieval_evidence` cannot be
 `COMPLETE_PROPOSITION`.
+
+## Methodology freeze
+
+Version 9 is the final speculative hardening pass for this research slice. Further
+protocol iteration requires **new observable evidence**: provider/host telemetry,
+documented or directly observed content-version semantics, a provider-side boundary
+primitive, or an equivalent discriminator. Without such evidence, additional
+reasoning cannot upgrade `UNKNOWN`; live strong-retain execution remains blocked by
+observability rather than by a demonstrated ButlerBrain failure.
 
 Positive, negative, and inconclusive runs all remain part of the research record.

@@ -1,6 +1,6 @@
 {
-  "schema_version": "001-E-retain-protocol-v8",
-  "status": "DRAFT_REVIEW_REQUIRED",
+  "schema_version": "001-E-retain-protocol-v9",
+  "status": "METHODOLOGY_FROZEN_EXECUTION_BLOCKED_BY_OBSERVABILITY",
   "issue": 5,
   "platform_scope_issue": 7,
   "purpose": "Add deterministic fixtures, rerun isolation, fresh-session verification, and downstream application actions without changing frozen 001-E stimuli.",
@@ -38,7 +38,11 @@
     "retrieval_qualification_binds_exact_returned_content_version": true,
     "predates_verification_requires_common_clock_or_calibrated_uncertainty": true,
     "stable_record_identity_or_record_created_at_is_insufficient_for_mutable_content": true,
-    "host_runtime_clock_alone_is_not_provider_temporal_evidence": true
+    "host_runtime_clock_alone_is_not_provider_temporal_evidence": true,
+    "match_scored_write_requires_observed_content_snapshot_or_semantics": true,
+    "provider_boundary_must_be_captured_before_verification_session_and_first_provider_operation": true,
+    "opaque_token_name_alone_does_not_prove_immutability_or_content_addressing": true,
+    "late_provider_boundary_cannot_qualify_predates_verification": true
   },
   "execution_arms": [
     {
@@ -122,7 +126,7 @@
           "provider evidence comes from an observable ButlerBrain read/search operation distinct from any fresh-session write/save",
           "the returned persisted record/content itself contains the complete retained proposition plus required current-run marker/provenance",
           "returned persisted record/content is distinguishable from retrieval request input; invocation arguments, trace text, echoes, or a new write result are not retrieval evidence",
-          "the exact returned content version must either have provider-generated version/update metadata that unambiguously predates the verification boundary in a common clock domain (or with preserved calibration/uncertainty proving ordering), or carry an immutable provider version token exactly matching the scored-write version token; stable record identity or record-level created_at alone is insufficient; otherwise provider_retrieval_evidence is UNKNOWN"
+          "the exact returned content version qualifies only if either: (a) a provider-side/common-clock boundary captured before opening the verification session and before its first provider operation, plus provider-generated version/update metadata, proves the exact returned content predates verification; or (b) the returned content snapshot/digest equals the scored-write snapshot/digest, or documented/observed provider semantics prove an immutable content-addressed/version-changing token and the exact token matches; opaque token names, stable record/receipt IDs, late boundaries, record-level created_at, or uncalibrated host/runtime time are insufficient; otherwise provider_retrieval_evidence is UNKNOWN"
         ]
       },
       "application": {
@@ -184,7 +188,7 @@
           "provider evidence comes from an observable ButlerBrain read/search operation distinct from any fresh-session write/save",
           "the returned persisted record/content itself contains the complete retained proposition plus required current-run marker/provenance",
           "returned persisted record/content is distinguishable from retrieval request input; invocation arguments, trace text, echoes, or a new write result are not retrieval evidence",
-          "the exact returned content version must either have provider-generated version/update metadata that unambiguously predates the verification boundary in a common clock domain (or with preserved calibration/uncertainty proving ordering), or carry an immutable provider version token exactly matching the scored-write version token; stable record identity or record-level created_at alone is insufficient; otherwise provider_retrieval_evidence is UNKNOWN"
+          "the exact returned content version qualifies only if either: (a) a provider-side/common-clock boundary captured before opening the verification session and before its first provider operation, plus provider-generated version/update metadata, proves the exact returned content predates verification; or (b) the returned content snapshot/digest equals the scored-write snapshot/digest, or documented/observed provider semantics prove an immutable content-addressed/version-changing token and the exact token matches; opaque token names, stable record/receipt IDs, late boundaries, record-level created_at, or uncalibrated host/runtime time are insufficient; otherwise provider_retrieval_evidence is UNKNOWN"
         ]
       },
       "application": {
@@ -242,7 +246,7 @@
           "provider evidence comes from an observable ButlerBrain read/search operation distinct from any fresh-session write/save",
           "the returned persisted record/content itself contains the complete retained proposition plus required current-run marker/provenance",
           "returned persisted record/content is distinguishable from retrieval request input; invocation arguments, trace text, echoes, or a new write result are not retrieval evidence",
-          "the exact returned content version must either have provider-generated version/update metadata that unambiguously predates the verification boundary in a common clock domain (or with preserved calibration/uncertainty proving ordering), or carry an immutable provider version token exactly matching the scored-write version token; stable record identity or record-level created_at alone is insufficient; otherwise provider_retrieval_evidence is UNKNOWN"
+          "the exact returned content version qualifies only if either: (a) a provider-side/common-clock boundary captured before opening the verification session and before its first provider operation, plus provider-generated version/update metadata, proves the exact returned content predates verification; or (b) the returned content snapshot/digest equals the scored-write snapshot/digest, or documented/observed provider semantics prove an immutable content-addressed/version-changing token and the exact token matches; opaque token names, stable record/receipt IDs, late boundaries, record-level created_at, or uncalibrated host/runtime time are insufficient; otherwise provider_retrieval_evidence is UNKNOWN"
         ]
       },
       "application": {
@@ -272,6 +276,11 @@
       "forced_diagnostic_persistence_probe_status",
       "fresh_session_functional_readback_status",
       "retrieval_time_provider_proposition_evidence",
+      "provider_boundary_captured_before_verification_session",
+      "provider_boundary_precedes_first_verification_provider_operation",
+      "scored_write_content_digest_or_snapshot",
+      "returned_content_digest_or_snapshot",
+      "content_version_semantics_evidence",
       "verification_session_boundary_evidence",
       "returned_content_version_identity_and_provider_metadata",
       "qualification_path",
@@ -289,10 +298,14 @@
       "UNKNOWN"
     ],
     "qualification_evidence_rules": [
-      "PREDATES_VERIFICATION qualifies the exact returned content version only when provider-generated version/update metadata and the verification boundary are in a common clock domain, or preserved calibration plus timestamp resolution/uncertainty makes the ordering unambiguous; record-level created_at, a stable record id, or an uncalibrated host/runtime timestamp is insufficient",
-      "MATCHES_SCORED_WRITE requires the exact returned content version to carry an immutable provider version token exactly equal to the immutable version token preserved from the scored write; stable record/receipt identity without immutable content-version equality is insufficient",
-      "the exact returned content version identity and supporting provider metadata/comparison must be preserved with the result",
-      "if common-clock/calibrated temporal evidence or immutable exact-version equality is unavailable or not preserved, qualification_path is UNKNOWN and provider_retrieval_evidence cannot be COMPLETE_PROPOSITION"
+      "PREDATES_VERIFICATION qualifies the exact returned content version only when a provider-side/common-clock boundary is preserved before opening the verification session and before its first provider operation, and provider-generated version/update metadata (or calibrated timing evidence with bounded uncertainty) makes the ordering unambiguous; a late boundary, record-level created_at, stable record id, or uncalibrated host/runtime timestamp is insufficient",
+      "MATCHES_SCORED_WRITE requires either exact equality between a scored-write stored-content snapshot/digest and the returned-content snapshot/digest, or documented/observed evidence that the provider token is immutable and content-addressed/version-changing plus exact equality of that token; an opaque token name, stable record id, or stable receipt id alone is insufficient",
+      "the exact returned content identity, scored and returned content snapshot/digest when available, provider token-semantics evidence when relied upon, and all supporting temporal/version comparisons must be preserved with the result",
+      "if a pre-verification provider boundary, content snapshot/digest equality, or proven immutable content-version semantics is unavailable or not preserved, qualification_path is UNKNOWN and provider_retrieval_evidence cannot be COMPLETE_PROPOSITION"
     ]
+  },
+  "freeze_disposition": {
+    "rule": "No further speculative hardening without new observable provider/host evidence.",
+    "resume_trigger": "New ButlerBrain/OpenAI telemetry, documented content-version semantics, provider-side boundary evidence, or equivalent observable discriminator."
   }
 }
