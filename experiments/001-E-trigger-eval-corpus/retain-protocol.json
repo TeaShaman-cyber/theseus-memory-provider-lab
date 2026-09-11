@@ -1,8 +1,9 @@
 {
-  "schema_version": "001-E-retain-protocol-v1",
+  "schema_version": "001-E-retain-protocol-v2",
   "status": "DRAFT_REVIEW_REQUIRED",
   "issue": 5,
-  "purpose": "Add fixtures, fresh-session verification, and downstream application actions without changing frozen 001-E stimuli.",
+  "platform_scope_issue": 7,
+  "purpose": "Add deterministic fixtures, rerun isolation, fresh-session verification, and downstream application actions without changing frozen 001-E stimuli.",
   "global_rules": {
     "stimulus_source": "evals.json",
     "stimulus_must_match_frozen_query_exactly": true,
@@ -10,9 +11,45 @@
     "routing_turn_forbids_provider_hinting": true,
     "fresh_session_must_not_restate_retained_payload": true,
     "functional_success_does_not_imply_provider_attribution": true,
+    "confirmed_attribution_requires_retrieval_time_provider_trace": true,
+    "strong_retain_readback_not_applicable_is_forbidden": true,
     "hidden_host_stage_disposition": "UNKNOWN",
-    "synthetic_non_sensitive_fixtures_only": true
+    "synthetic_non_sensitive_fixtures_only": true,
+    "unique_canary_per_run": true,
+    "preflight_canary_search_is_non_routing": true,
+    "forced_postwrite_provider_readback_is_non_routing": true,
+    "disposable_project_per_strong_retain_run": true
   },
+  "execution_arms": [
+    {
+      "id": "PRODUCTION_ROUTING",
+      "routing_scored": true,
+      "project_boundary": "ordinary environment",
+      "provider_hinting": "forbidden"
+    },
+    {
+      "id": "CLEAN_PROJECT_ROUTING",
+      "routing_scored": true,
+      "project_boundary": "new disposable project; project-only memory; zero files; no payload-bearing project instructions",
+      "provider_hinting": "forbidden",
+      "known_confounds": [
+        "native project memory",
+        "installed plugins/apps/skills not technically scoped per project"
+      ]
+    },
+    {
+      "id": "SOFT_PROVIDER_SCOPE",
+      "routing_scored": false,
+      "project_boundary": "new disposable project; project-only memory; project instructions request ButlerBrain-only external persistent memory",
+      "reason_non_routing": "project instructions change router input and are not an enforceable capability boundary"
+    },
+    {
+      "id": "HARD_PROVIDER_ISOLATION",
+      "routing_scored": false,
+      "status": "BLOCKED",
+      "blocking_reason": "no observed/documented per-project plugin/app/skill capability allowlist on tested ChatGPT Project surface"
+    }
+  ],
   "cases": [
     {
       "case_id": "explicit-user-fact",
@@ -20,29 +57,42 @@
       "fixture": {
         "type": "environment",
         "requirements": [
-          "fresh chat for retain stimulus",
-          "known project scope for phrase 'этого проекта'",
-          "record competing memory/context routes"
+          "create disposable project named 001E-REPORT-{unique_run_suffix}",
+          "enable project-only memory",
+          "zero project files",
+          "no payload-bearing project instructions in routing-scored arms",
+          "read-only preflight ButlerBrain search finds no record bound to the unique project identifier"
         ],
-        "validity_rule": "If another visible source already contains the exact tested requirement, functional retrieval is confounded for provider attribution."
+        "canary": "project identifier 001E-REPORT-{unique_run_suffix}",
+        "validity_rule": "Any pre-existing provider result bound to the current project canary invalidates the run; generate a new canary."
       },
       "stimulus": "Запомни: для этого проекта отчёты должны быть короткими и с provenance.",
+      "provider_readback": {
+        "mode": "observable automatic readback or forced read-only NON_ROUTING diagnostic",
+        "pass_conditions": [
+          "retrieves the report-format requirement",
+          "binds the requirement to the current unique project scope/canary"
+        ],
+        "unknown_rule": "If binding to the current project scope cannot be observed, provider persistence is UNKNOWN rather than waived."
+      },
       "verification": {
         "session": "fresh_same_project",
         "prompt": "Какие сохранённые требования к формату отчётов действуют для этого проекта?",
         "pass_conditions": [
           "retrieves requirement that reports are short",
           "retrieves requirement that reports include provenance"
-        ]
+        ],
+        "attribution_rule": "Functional PASS remains CONFOUNDED unless retrieval-time ButlerBrain evidence is visible."
       },
       "application": {
-        "session": "same_as_verification_or_new_fresh_same_project",
-        "prompt": "Сформируй отчёт по синтетическому результату run_id=001E-REPORT-CHECK, status=PASS, evidence=synthetic-receipt-001E. Используй сохранённые требования этого проекта к формату отчётов.",
+        "session": "new_fresh_same_project",
+        "prompt_template": "Сформируй отчёт по синтетическому результату: run_id={application_run_id}; status=PASS; receipt_ref={receipt_ref}.",
         "pass_conditions": [
-          "report is short",
-          "report includes explicit provenance/evidence"
+          "report is at most two non-empty lines",
+          "report preserves receipt_ref as evidence/provenance"
         ],
-        "attribution_note": "Application PASS is lifecycle corroboration, not provider attribution by itself."
+        "matched_control": "Run the identical prompt in an otherwise matched disposable control project with no retain stimulus. If control also passes, classify NON_DIAGNOSTIC.",
+        "attribution_note": "Application effect is corroborative only and never confirms provider attribution."
       }
     },
     {
@@ -52,26 +102,37 @@
         "type": "preceding_user_turn",
         "prompt_template": "Синтетический контекст для следующего шага: workflow run_id={run_id}; local SHA={sha}; independently observed remote SHA={sha}. Это временный контекст теста; пока ничего не сохраняй.",
         "parameters": {
-          "run_id": "001E-WORKFLOW-<unique-run-suffix>",
-          "sha": "0123456789abcdef0123456789abcdef01234567"
+          "run_id": "GENERATE:001E-WORKFLOW-{unique_run_suffix}",
+          "sha": "GENERATE:40_HEX_PER_RUN"
         },
-        "validity_rule": "The run ID and SHA must be unique to the test run, and the next user turn must be the frozen stimulus."
+        "validity_rule": "Generate both values per run; preflight provider search must find neither canary; the next user turn must be the frozen stimulus."
       },
       "stimulus": "Workflow завершился успешно, а remote SHA независимо совпал. Зафиксируй этот результат как опыт.",
-      "verification": {
-        "session": "fresh",
-        "prompt": "Какой результат последнего синтетического workflow я просил сохранить и чем была подтверждена его достоверность?",
+      "provider_readback": {
+        "mode": "observable automatic readback or forced read-only NON_ROUTING diagnostic",
         "pass_conditions": [
+          "retrieves exact generated run_id",
+          "retrieves exact generated SHA",
+          "preserves independent remote-SHA verification provenance"
+        ]
+      },
+      "verification": {
+        "session": "fresh_same_execution_boundary",
+        "prompt": "Какой результат последнего синтетического workflow я просил сохранить и чем была подтверждена его достоверность? Назови его run_id и SHA.",
+        "pass_conditions": [
+          "retrieves exact current-run run_id",
+          "retrieves exact current-run SHA",
           "retrieves successful workflow outcome",
           "retrieves independent remote-SHA match as verification provenance",
           "does not downgrade the result to merely unverified"
-        ]
+        ],
+        "attribution_rule": "Functional PASS remains CONFOUNDED unless retrieval-time ButlerBrain evidence is visible."
       },
       "application": {
-        "session": "same_as_verification_or_new_fresh",
-        "prompt": "Составь однострочную запись журнала по сохранённому синтетическому workflow-результату с provenance.",
+        "session": "new_fresh_same_execution_boundary",
+        "prompt": "Составь однострочную запись журнала по сохранённому последнему синтетическому workflow-результату.",
         "pass_conditions": [
-          "journal line states the saved result",
+          "journal line states exact current-run run_id and SHA",
           "journal line preserves independent verification provenance"
         ]
       }
@@ -81,25 +142,39 @@
       "source_class": "USER_APPROVED_DECISION",
       "fixture": {
         "type": "preceding_user_turn",
-        "prompt_template": "Синтетический контекст для следующего шага. Есть Design A: хранить состояние только как Markdown. Есть Design B: хранить каноническое состояние как JSON, а Markdown строить как проекцию. Для этого теста предложен Design B, потому что каноническое состояние должно быть машинно проверяемым. Это предложение ещё не утверждено пользователем.",
-        "validity_rule": "The fixture must make Design B the single unambiguous referent of 'этот дизайн' while withholding user approval until the frozen stimulus."
+        "prompt_template": "Синтетический контекст для следующего шага. Есть Design A: хранить состояние только как Markdown. Есть Design B [{design_canary}]: хранить каноническое состояние как JSON, а Markdown строить как проекцию. Для этого теста предложен Design B, потому что каноническое состояние должно быть машинно проверяемым. Это предложение ещё не утверждено пользователем.",
+        "parameters": {
+          "design_canary": "GENERATE:001E-DESIGN-{unique_run_suffix}"
+        },
+        "validity_rule": "Generate a new design_canary and confirm by preflight provider search that it does not exist before the frozen stimulus."
       },
       "stimulus": "Да, принимаю этот дизайн. Используем именно его дальше.",
-      "verification": {
-        "session": "fresh",
-        "prompt": "Какой вариант из синтетического выбора я утвердил и почему?",
+      "provider_readback": {
+        "mode": "observable automatic readback or forced read-only NON_ROUTING diagnostic",
         "pass_conditions": [
+          "retrieves exact current-run design_canary",
           "identifies Design B as user-approved",
-          "preserves rationale that canonical state should be machine-verifiable",
-          "distinguishes proposal from user approval"
+          "preserves machine-verifiability rationale"
         ]
       },
+      "verification": {
+        "session": "fresh_same_execution_boundary",
+        "prompt": "Какой вариант из последнего синтетического выбора я утвердил, какой у него идентификатор и почему?",
+        "pass_conditions": [
+          "identifies Design B as user-approved",
+          "retrieves exact current-run design_canary",
+          "preserves rationale that canonical state should be machine-verifiable",
+          "distinguishes proposal from user approval"
+        ],
+        "attribution_rule": "Functional PASS remains CONFOUNDED unless retrieval-time ButlerBrain evidence is visible."
+      },
       "application": {
-        "session": "same_as_verification_or_new_fresh",
-        "prompt": "Выбери следующий шаг, совместимый с утверждённым синтетическим дизайном, и назови сохранённую причину выбора.",
+        "session": "new_fresh_same_execution_boundary",
+        "prompt": "Назови один следующий технический шаг, совместимый с последним утверждённым синтетическим дизайном, и кратко объясни причину.",
         "pass_conditions": [
           "next step is compatible with JSON canonical state and Markdown projection",
-          "response names the retained rationale"
+          "response names the retained rationale",
+          "response identifies the current-run design_canary"
         ]
       }
     }

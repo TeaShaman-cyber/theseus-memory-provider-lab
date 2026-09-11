@@ -93,18 +93,90 @@ measure automatic selection.
 ## Fresh-session boundary
 
 A verification session must not contain the original retain stimulus or its
-payload. It may contain only the verification/application prompt and ordinary
-host/project context.
+payload in current-chat context. It may contain only its verification or
+application prompt plus the declared project/runtime environment.
 
 `fresh session` removes current-chat conversational state; it does **not** imply
-that project instructions, ChatGPT memory, plugins, or other configured context
-sources disappear. These sources must be reported as competing routes when they
-can explain the result.
+provider isolation. Project chat history, native ChatGPT memory, plugins/apps,
+Skills, or other configured context routes may still explain a correct answer.
+Every such route remains a recorded confounder unless independently excluded.
 
-For a stimulus containing "для этого проекта", semantic scope must remain the
-same project. If that project already contains the tested payload through another
-source, provider attribution is `CONFOUNDED` unless independent provider evidence
-resolves it.
+For a stimulus containing "для этого проекта", semantic scope must remain a
+known project. Runs must use a unique disposable project identity so repeated
+field tests cannot silently reuse an earlier project-memory fixture.
+
+## Execution arms: do not confuse context isolation with provider isolation
+
+The field test uses separate arms because current ChatGPT Projects can scope
+project memory/context, while no documented per-project capability allowlist for
+installed plugins/apps/skills is available on the tested surface. See #7.
+
+```text
+A. PRODUCTION_ROUTING
+   ordinary ChatGPT environment
+   no provider hints
+   purpose: observe real route competition and automatic selection
+
+B. CLEAN_PROJECT_ROUTING
+   new disposable Project per run
+   project-only memory
+   zero files and no payload-bearing project instructions
+   no provider hints
+   purpose: reduce historical contamination while preserving realistic
+            ButlerBrain-vs-native-project-memory competition
+
+C. SOFT_PROVIDER_SCOPE
+   new disposable Project per run
+   project-only memory
+   minimal Project Instructions request ButlerBrain as the only external
+   persistent-memory provider
+   purpose: provider lifecycle diagnostics under a soft policy boundary
+   routing score: NON_ROUTING, because the router input was changed
+
+D. HARD_PROVIDER_ISOLATION
+   per-project capability allowlist/denylist or equivalent enforcement
+   current disposition: BLOCKED on the documented ChatGPT Project surface
+   until an enforceable boundary is observable
+```
+
+Recommended soft-scope Project Instructions for arm C:
+
+```text
+Experiment boundary:
+- For persistent memory operations in this project, use ButlerBrain only.
+- Do not substitute another external memory provider or continuity/search tool.
+- If ButlerBrain cannot be used or attribution is not observable, report UNKNOWN.
+- Do not treat an acknowledgement such as "remembered" as proof of persistence.
+```
+
+These instructions are a **behavioral request**, not a security/capability
+boundary. Native project memory and hidden host behavior can still confound the
+result. The user-observed Project Instructions UI limit (8,000 characters on the
+tested account) is not treated as an OpenAI-documented invariant.
+
+## Rerun isolation and unique canaries
+
+A fixed semantic payload can be satisfied by a stale record from an earlier run.
+Every strong-retain execution therefore needs both a disposable project and a
+per-run canary.
+
+Before the scored retain turn:
+
+1. generate a unique `run_id` / project identifier;
+2. for cases with synthetic objects, generate unique workflow/design canaries;
+3. perform a **read-only forced provider preflight search** for the canary;
+4. if the canary already exists, invalidate it and generate another;
+5. label the preflight `NON_ROUTING` and exclude it from routing metrics.
+
+After the retain turn, an explicit read-only provider search may be used to
+verify persistence when the host does not expose an automatic readback. That
+search is also `NON_ROUTING`. It can prove provider storage/readback when tied to
+the unique canary, but cannot prove that ButlerBrain supplied a later ChatGPT
+answer.
+
+For `explicit-user-fact`, the disposable project's unique identifier is part of
+the scope that a durable provider record must preserve. A generic old record such
+as "reports should be short" is not sufficient evidence for the current run.
 
 ## Evidence and scoring vocabulary
 
@@ -118,25 +190,36 @@ write_evidence:
   OBSERVED | NOT_OBSERVED | UNKNOWN
 
 provider_postwrite_readback:
-  PASS | FAIL | UNKNOWN | NOT_APPLICABLE
+  PASS | FAIL | UNKNOWN
 
 cross_session_readback:
   PASS | FAIL | UNKNOWN
 
 application:
-  PASS | FAIL | UNKNOWN
+  PASS | FAIL | NON_DIAGNOSTIC | UNKNOWN
 
 provider_attribution:
-  CONFIRMED | CONFOUNDED | UNKNOWN
+  CONFIRMED_BY_RETRIEVAL_TRACE | CONFOUNDED | UNKNOWN
 ```
 
-`NOT_OBSERVED` is not equivalent to proof that no write occurred when the host
-hides tool/Skill execution. Use it only for an exposed surface where the absence
-itself is observable; otherwise use `UNKNOWN`.
+`NOT_OBSERVED` is not proof that no write occurred when the host hides tool/Skill
+execution. Use it only on an exposed surface where absence itself is observable;
+otherwise use `UNKNOWN`.
 
-A routing metric may count a provider hit/miss only when the relevant attribution
-is observable enough for that metric. Functional success from a competing route
-is recorded separately and must not be silently converted into a provider hit.
+For strong-retain cases, `provider_postwrite_readback = UNKNOWN` is an
+**inconclusive lifecycle**, not `NOT_APPLICABLE`. A write may not be accepted as
+verified persistence without readback evidence; this keeps
+`write_without_readback_rate = 0` meaningful.
+
+`CONFIRMED_BY_RETRIEVAL_TRACE` requires fresh-session retrieval-time evidence
+that ButlerBrain supplied the relevant unique artifact/canary. An observed write
+or an earlier post-write provider search is insufficient, because native project
+memory or another mechanism could still supply the later answer. In the absence
+of retrieval-time provider evidence, use `CONFOUNDED` or `UNKNOWN`.
+
+Because hard provider isolation is currently `BLOCKED`, an isolated-environment
+success is not available as an alternative path to confirmed attribution on this
+surface.
 
 ## Strong-retain cases
 
@@ -144,47 +227,90 @@ Machine-readable fixtures and prompts are in `retain-protocol.json`.
 
 ### `explicit-user-fact`
 
-No semantic fixture is added before the frozen stimulus; the test runs in a fresh
-chat whose project scope is known. After the retain turn, verification happens in
-another fresh chat without restating "короткими" or "provenance".
+Run in a newly created disposable Project whose unique project identifier is
+recorded. Use project-only memory. Before the retain stimulus, confirm with a
+read-only ButlerBrain search that no provider record containing that unique
+project identifier exists.
 
-The lifecycle is accepted only if the later session can retrieve the saved
-requirement and then use it while producing an actual report. Correct formatting
-alone is corroborative, not provider attribution, because project instructions or
-another memory layer could independently cause the same style.
+After the frozen retain turn, a provider readback is `PASS` only if a ButlerBrain
+result binds the formatting requirement to the current unique project scope. A
+stale generic formatting preference is insufficient.
+
+Cross-session verification asks for the saved report-format requirements without
+restating them. Functional retrieval may still be explained by native project
+memory; therefore it does not confirm ButlerBrain attribution by itself.
+
+The downstream application uses a neutral synthetic reporting task and does not
+say "use the saved requirements", "be short", or "include provenance". A matched
+control Project with no retain stimulus receives the same neutral task. If both
+arms naturally satisfy the formatting criteria, application is
+`NON_DIAGNOSTIC`; only a retained-vs-control difference is evidence that the
+retained rule changed behavior.
 
 ### `verified-external-effect`
 
-The fixture supplies a unique synthetic workflow run ID and SHA before the frozen
-stimulus. This makes "Workflow" and "remote SHA" refer to one deterministic test
-object while preserving the frozen stimulus unchanged.
+The fixture supplies a **generated** per-run workflow ID and SHA before the frozen
+stimulus. Fixed placeholder SHA values are invalid for execution. The later
+provider readback and fresh-session verification must recover the exact run ID
+and exact generated SHA plus the independent-verification provenance.
 
-The later session must recover both the outcome and its independent-verification
-provenance, then emit a one-line journal record from the retained result.
-Downgrading an independently verified result to an unverified assertion fails the
-original provenance invariant.
+The application prompt asks for a journal record from the saved workflow result
+without restating the outcome or SHA. Downgrading independently verified evidence
+to an unverified assertion fails the original provenance invariant.
 
 ### `user-approved-decision`
 
 The fixture establishes two synthetic candidate designs and an explicit proposed
-choice, but does **not** claim that the user approved it. The unchanged frozen
-stimulus supplies the approval event.
+choice, but does **not** claim user approval. Design B carries a generated unique
+`design_canary`; the unchanged frozen stimulus supplies the approval event.
 
-The later session must identify which design the user approved and the reason,
-then select a next step compatible with that approved design. If the fixture does
-not make "этот дизайн" unambiguous before the stimulus, mark the fixture invalid
-and do not score the run.
+Provider readback and later verification must recover the exact current-run
+canary, approved design, and rationale. A stale memory of an earlier Design B is
+therefore unable to satisfy the current run. The application then chooses a next
+step compatible with that retained design without restating its contents.
+
+## Application-control rule
+
+An application PASS is never provider attribution. For a behavioral property
+that a model may produce by default (for example concise formatting), use a
+matched control with the same application prompt but **without** the retain
+stimulus.
+
+```text
+retained arm passes, control fails   -> application PASS (corroborative)
+both arms pass                       -> NON_DIAGNOSTIC
+retained arm fails                   -> application FAIL/UNKNOWN by evidence
+```
+
+The control establishes whether the retained state changed observable behavior;
+it does not identify which memory source caused the change.
 
 ## Privacy and cleanup boundary
 
-Use synthetic non-sensitive run IDs and synthetic SHA values only. Do not place
-private conversation content, credentials, account state, or real private
-operational artifacts into the public research log.
+Use synthetic non-sensitive run IDs, project identifiers, design canaries, and
+SHA values only. Do not place private conversation content, credentials, account
+state, or real private operational artifacts into the public research log.
 
 The currently observed ButlerBrain surface exposes save/search but no symmetric
 thought-delete operation. Therefore this runbook makes no cleanup claim. A test
 write is considered persistent until deletion is both available and independently
-verified.
+verified. Unique per-run canaries and disposable Projects prevent old records
+from being accepted as evidence for a new run; they do not delete provider state.
+
+## Platform limitation discovered during methodology review
+
+`PROJECT_CONTEXT_ISOLATION != PROVIDER_ISOLATION`.
+
+OpenAI's documented Project surface provides project-memory controls and allows
+connected apps in Projects, while plugin/app availability is documented through
+account/workspace/role controls rather than a per-project capability allowlist.
+Project Instructions can request a routing policy but cannot prove that disabled
+capabilities were technically ineligible.
+
+This limitation is tracked separately in #7 because it affects both ordinary
+user control and reproducible plugin/app development. The requested product
+capabilities are per-project plugin/app/skill scoping plus user-visible event-level
+routing/tool provenance; no chain-of-thought exposure is required.
 
 ## Minimum execution record
 
@@ -192,14 +318,18 @@ For each retain run, preserve a sanitized record containing:
 
 ```text
 case_id
-run_id
-host / model when observable
+run_id / unique canary
+execution_arm
+project identity and project-memory mode
 fixture validity
+pre-run provider canary search
+host / model when observable
 auto-route evidence
 provider calls / receipts when exposed
 post-write readback status
 fresh-session readback status
-application status
+retrieval-time provider evidence
+application status and matched-control result
 competing routes / confounders
 final provider attribution
 hard-invariant violations
