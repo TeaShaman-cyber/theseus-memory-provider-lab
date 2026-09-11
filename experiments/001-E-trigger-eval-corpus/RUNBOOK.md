@@ -257,13 +257,20 @@ otherwise use `UNKNOWN`.
 For strong-retain cases, `provider_postwrite_readback = UNKNOWN` is an
 **inconclusive lifecycle**, not `NOT_APPLICABLE`. A write may not be accepted as
 verified persistence without readback evidence; this keeps
-`write_without_readback_rate = 0` meaningful.
+`write_without_readback_rate = 0` meaningful. A scored readback additionally
+requires an observable provider **read operation distinct from the write/save**.
+A save response that merely echoes submitted content is not read-after-write. The
+read must return persisted record identity and/or stored content distinguishable
+from the write input; otherwise readback remains `UNKNOWN`.
 
 `provider_retrieval_evidence = COMPLETE_PROPOSITION` requires fresh-session
 retrieval-time ButlerBrain evidence containing the complete retained proposition
-and its required provenance, bound to the current run marker where applicable. A
-canary alone, fixture-only content, an observed write, or an earlier forced
-provider search is insufficient.
+and its required provenance, bound to the current run marker where applicable.
+The evidence must be **returned persisted record/content**, with identity/content
+distinguishable from the retrieval request input. Request arguments, trace text,
+or provider echoes cannot establish retrieval because hidden host context may have
+already placed the proposition into the request. A canary alone, fixture-only
+content, an observed write, or an earlier forced provider search is insufficient.
 
 Under the current black-box surface, observing a complete ButlerBrain retrieval
 still does not prove that hidden host logic used that result rather than an
@@ -289,11 +296,12 @@ explicitly states that it is only a test-scope identifier, not a formatting
 requirement. Preflight search for that marker runs in a separate diagnostic
 session before the routing conversation.
 
-After the frozen retain turn, automatic provider readback is `PASS` only if the
-observable automatic result contains the complete formatting proposition
-(`short` + `provenance`) bound to the current `scope_marker`. A stale generic
-formatting preference, the scope marker alone, or a later forced diagnostic
-search cannot satisfy automatic readback.
+After the frozen retain turn, automatic provider readback is `PASS` only if an
+observable provider **read operation distinct from the save/write** returns a
+persisted record/content containing the complete formatting proposition (`short`
++ `provenance`) bound to the current `scope_marker`. A save-response echo, stale
+generic formatting preference, the scope marker alone, or a later forced
+diagnostic search cannot satisfy automatic readback.
 
 Cross-session verification asks for the saved report-format requirements without
 restating them. Functional retrieval may still be explained by native project
@@ -320,8 +328,10 @@ introduced only by the frozen turn: **the workflow completed successfully**, plu
 the independent-verification provenance.
 
 The application prompt asks for a journal record from the saved workflow result
-without restating the outcome or SHA. Downgrading independently verified evidence
-to an unverified assertion fails the original provenance invariant.
+without restating the outcome or SHA. Functional PASS requires the journal line
+to recover **the successful workflow outcome itself**, not merely the fixture's
+run ID, SHA, and verification provenance. Downgrading independently verified
+evidence to an unverified assertion fails the original provenance invariant.
 
 ### `user-approved-decision`
 
@@ -333,8 +343,9 @@ Provider readback and later verification must recover the exact current-run
 canary, the proposition introduced only by the frozen turn (**user approved
 Design B for continued use**), and the rationale. The canary/rationale already
 exist in the fixture and cannot by themselves prove retention of the approval
-event. The application then chooses a next step compatible with that retained
-design without restating its contents.
+event. The application must also explicitly identify Design B as **user-approved**
+before functional PASS; merely producing a step compatible with the proposed
+Design B is fixture-only evidence.
 
 ## Application-control rule
 
