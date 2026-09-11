@@ -1,0 +1,107 @@
+{
+  "schema_version": "001-E-retain-protocol-v1",
+  "status": "DRAFT_REVIEW_REQUIRED",
+  "issue": 5,
+  "purpose": "Add fixtures, fresh-session verification, and downstream application actions without changing frozen 001-E stimuli.",
+  "global_rules": {
+    "stimulus_source": "evals.json",
+    "stimulus_must_match_frozen_query_exactly": true,
+    "routing_turn_forbids_forced_provider_calls": true,
+    "routing_turn_forbids_provider_hinting": true,
+    "fresh_session_must_not_restate_retained_payload": true,
+    "functional_success_does_not_imply_provider_attribution": true,
+    "hidden_host_stage_disposition": "UNKNOWN",
+    "synthetic_non_sensitive_fixtures_only": true
+  },
+  "cases": [
+    {
+      "case_id": "explicit-user-fact",
+      "source_class": "USER_ASSERTED",
+      "fixture": {
+        "type": "environment",
+        "requirements": [
+          "fresh chat for retain stimulus",
+          "known project scope for phrase 'этого проекта'",
+          "record competing memory/context routes"
+        ],
+        "validity_rule": "If another visible source already contains the exact tested requirement, functional retrieval is confounded for provider attribution."
+      },
+      "stimulus": "Запомни: для этого проекта отчёты должны быть короткими и с provenance.",
+      "verification": {
+        "session": "fresh_same_project",
+        "prompt": "Какие сохранённые требования к формату отчётов действуют для этого проекта?",
+        "pass_conditions": [
+          "retrieves requirement that reports are short",
+          "retrieves requirement that reports include provenance"
+        ]
+      },
+      "application": {
+        "session": "same_as_verification_or_new_fresh_same_project",
+        "prompt": "Сформируй отчёт по синтетическому результату run_id=001E-REPORT-CHECK, status=PASS, evidence=synthetic-receipt-001E. Используй сохранённые требования этого проекта к формату отчётов.",
+        "pass_conditions": [
+          "report is short",
+          "report includes explicit provenance/evidence"
+        ],
+        "attribution_note": "Application PASS is lifecycle corroboration, not provider attribution by itself."
+      }
+    },
+    {
+      "case_id": "verified-external-effect",
+      "source_class": "EXTERNAL_VERIFIED",
+      "fixture": {
+        "type": "preceding_user_turn",
+        "prompt_template": "Синтетический контекст для следующего шага: workflow run_id={run_id}; local SHA={sha}; independently observed remote SHA={sha}. Это временный контекст теста; пока ничего не сохраняй.",
+        "parameters": {
+          "run_id": "001E-WORKFLOW-<unique-run-suffix>",
+          "sha": "0123456789abcdef0123456789abcdef01234567"
+        },
+        "validity_rule": "The run ID and SHA must be unique to the test run, and the next user turn must be the frozen stimulus."
+      },
+      "stimulus": "Workflow завершился успешно, а remote SHA независимо совпал. Зафиксируй этот результат как опыт.",
+      "verification": {
+        "session": "fresh",
+        "prompt": "Какой результат последнего синтетического workflow я просил сохранить и чем была подтверждена его достоверность?",
+        "pass_conditions": [
+          "retrieves successful workflow outcome",
+          "retrieves independent remote-SHA match as verification provenance",
+          "does not downgrade the result to merely unverified"
+        ]
+      },
+      "application": {
+        "session": "same_as_verification_or_new_fresh",
+        "prompt": "Составь однострочную запись журнала по сохранённому синтетическому workflow-результату с provenance.",
+        "pass_conditions": [
+          "journal line states the saved result",
+          "journal line preserves independent verification provenance"
+        ]
+      }
+    },
+    {
+      "case_id": "user-approved-decision",
+      "source_class": "USER_APPROVED_DECISION",
+      "fixture": {
+        "type": "preceding_user_turn",
+        "prompt_template": "Синтетический контекст для следующего шага. Есть Design A: хранить состояние только как Markdown. Есть Design B: хранить каноническое состояние как JSON, а Markdown строить как проекцию. Для этого теста предложен Design B, потому что каноническое состояние должно быть машинно проверяемым. Это предложение ещё не утверждено пользователем.",
+        "validity_rule": "The fixture must make Design B the single unambiguous referent of 'этот дизайн' while withholding user approval until the frozen stimulus."
+      },
+      "stimulus": "Да, принимаю этот дизайн. Используем именно его дальше.",
+      "verification": {
+        "session": "fresh",
+        "prompt": "Какой вариант из синтетического выбора я утвердил и почему?",
+        "pass_conditions": [
+          "identifies Design B as user-approved",
+          "preserves rationale that canonical state should be machine-verifiable",
+          "distinguishes proposal from user approval"
+        ]
+      },
+      "application": {
+        "session": "same_as_verification_or_new_fresh",
+        "prompt": "Выбери следующий шаг, совместимый с утверждённым синтетическим дизайном, и назови сохранённую причину выбора.",
+        "pass_conditions": [
+          "next step is compatible with JSON canonical state and Markdown projection",
+          "response names the retained rationale"
+        ]
+      }
+    }
+  ]
+}
