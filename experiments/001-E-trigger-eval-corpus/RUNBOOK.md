@@ -419,10 +419,22 @@ automatic post-write readback status
 forced diagnostic persistence-probe status
 fresh-session functional readback status
 retrieval-time provider proposition evidence
+verification_session_started_at
+returned_record_created_at / returned_record_version (provider-generated when exposed)
+qualification_path (`PREDATES_VERIFICATION` | `MATCHES_SCORED_WRITE` | `UNKNOWN`)
+qualification_evidence (preserved temporal comparison or exact scored-write receipt/version comparison)
 application functional result and matched-control disposition
 competing routes / confounders
 final-answer source attribution (`CONFOUNDED` / `UNKNOWN`)
 hard-invariant violations
 ```
+
+For `PREDATES_VERIFICATION`, preserve the verification-session boundary, the
+provider-generated creation/version metadata of the returned record, and the
+comparison that establishes ordering. For `MATCHES_SCORED_WRITE`, preserve the
+original scored-write receipt/version identity and the exact comparison against
+the returned record. If those artifacts or the comparison are not preserved,
+`qualification_path = UNKNOWN` and `provider_retrieval_evidence` cannot be
+`COMPLETE_PROPOSITION`.
 
 Positive, negative, and inconclusive runs all remain part of the research record.

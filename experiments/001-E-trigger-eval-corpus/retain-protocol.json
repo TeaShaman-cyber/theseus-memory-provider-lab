@@ -1,5 +1,5 @@
 {
-  "schema_version": "001-E-retain-protocol-v6",
+  "schema_version": "001-E-retain-protocol-v7",
   "status": "DRAFT_REVIEW_REQUIRED",
   "issue": 5,
   "platform_scope_issue": 7,
@@ -33,7 +33,8 @@
     "fresh_session_provider_evidence_requires_read_or_search": true,
     "fresh_session_write_cannot_count_as_retrieval": true,
     "fresh_session_qualifying_record_must_predate_verification_or_match_scored_write_receipt": true,
-    "verification_session_created_records_cannot_satisfy_provider_retrieval": true
+    "verification_session_created_records_cannot_satisfy_provider_retrieval": true,
+    "complete_proposition_requires_preserved_qualification_evidence": true
   },
   "execution_arms": [
     {
@@ -251,5 +252,40 @@
         ]
       }
     }
-  ]
+  ],
+  "minimum_execution_record": {
+    "required_fields": [
+      "case_id",
+      "run_id_or_unique_canary",
+      "execution_arm",
+      "project_identity_and_memory_mode",
+      "fixture_validity",
+      "preflight_provider_canary_search_and_diagnostic_session_identity",
+      "host_and_model_when_observable",
+      "auto_route_evidence",
+      "provider_calls_or_receipts_when_exposed",
+      "automatic_postwrite_readback_status",
+      "forced_diagnostic_persistence_probe_status",
+      "fresh_session_functional_readback_status",
+      "retrieval_time_provider_proposition_evidence",
+      "verification_session_started_at",
+      "returned_record_created_at_or_version",
+      "qualification_path",
+      "qualification_evidence",
+      "application_functional_result_and_control_disposition",
+      "competing_routes_or_confounders",
+      "final_answer_source_attribution",
+      "hard_invariant_violations"
+    ],
+    "qualification_path_values": [
+      "PREDATES_VERIFICATION",
+      "MATCHES_SCORED_WRITE",
+      "UNKNOWN"
+    ],
+    "qualification_evidence_rules": [
+      "PREDATES_VERIFICATION requires preserved verification-session boundary plus provider-generated returned-record creation/version metadata and the comparison establishing ordering",
+      "MATCHES_SCORED_WRITE requires preserved original scored-write receipt/version identity plus the exact returned-record identity/version comparison",
+      "if the qualifying artifacts or comparison are not preserved, qualification_path is UNKNOWN and provider_retrieval_evidence cannot be COMPLETE_PROPOSITION"
+    ]
+  }
 }
