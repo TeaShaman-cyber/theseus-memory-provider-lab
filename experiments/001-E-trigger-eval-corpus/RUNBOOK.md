@@ -271,7 +271,12 @@ distinct from any fresh-session write/save. The returned persisted record/conten
 itself must contain the complete proposition and run marker/provenance and be
 distinguishable from the retrieval request input. Request arguments, trace text,
 provider echoes, or a newly created write result cannot establish retrieval because
-hidden host context may already have placed the proposition into the request. A canary alone, fixture-only
+hidden host context may already have placed the proposition into the request. The
+qualifying returned record must additionally either **demonstrably predate the
+verification session** or match the original scored-write receipt/version identity.
+A record first created during fresh-session verification cannot satisfy provider
+retrieval; if neither temporal ordering nor scored-write identity is observable,
+`provider_retrieval_evidence` remains `UNKNOWN`. A canary alone, fixture-only
 content, an observed write, or an earlier forced provider search is insufficient.
 
 Under the current black-box surface, observing a complete ButlerBrain retrieval

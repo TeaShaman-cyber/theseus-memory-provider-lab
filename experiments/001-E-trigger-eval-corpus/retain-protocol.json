@@ -1,5 +1,5 @@
 {
-  "schema_version": "001-E-retain-protocol-v5",
+  "schema_version": "001-E-retain-protocol-v6",
   "status": "DRAFT_REVIEW_REQUIRED",
   "issue": 5,
   "platform_scope_issue": 7,
@@ -31,7 +31,9 @@
     "echo_or_request_trace_is_not_retrieval_evidence": true,
     "readback_proposition_must_be_in_returned_stored_content": true,
     "fresh_session_provider_evidence_requires_read_or_search": true,
-    "fresh_session_write_cannot_count_as_retrieval": true
+    "fresh_session_write_cannot_count_as_retrieval": true,
+    "fresh_session_qualifying_record_must_predate_verification_or_match_scored_write_receipt": true,
+    "verification_session_created_records_cannot_satisfy_provider_retrieval": true
   },
   "execution_arms": [
     {
@@ -114,7 +116,8 @@
         "provider_record_requirements": [
           "provider evidence comes from an observable ButlerBrain read/search operation distinct from any fresh-session write/save",
           "the returned persisted record/content itself contains the complete retained proposition plus required current-run marker/provenance",
-          "returned persisted record/content is distinguishable from retrieval request input; invocation arguments, trace text, echoes, or a new write result are not retrieval evidence"
+          "returned persisted record/content is distinguishable from retrieval request input; invocation arguments, trace text, echoes, or a new write result are not retrieval evidence",
+          "qualifying returned record must either demonstrably predate the verification session or match the original scored-write receipt/version identity; otherwise provider_retrieval_evidence is UNKNOWN"
         ]
       },
       "application": {
@@ -175,7 +178,8 @@
         "provider_record_requirements": [
           "provider evidence comes from an observable ButlerBrain read/search operation distinct from any fresh-session write/save",
           "the returned persisted record/content itself contains the complete retained proposition plus required current-run marker/provenance",
-          "returned persisted record/content is distinguishable from retrieval request input; invocation arguments, trace text, echoes, or a new write result are not retrieval evidence"
+          "returned persisted record/content is distinguishable from retrieval request input; invocation arguments, trace text, echoes, or a new write result are not retrieval evidence",
+          "qualifying returned record must either demonstrably predate the verification session or match the original scored-write receipt/version identity; otherwise provider_retrieval_evidence is UNKNOWN"
         ]
       },
       "application": {
@@ -232,7 +236,8 @@
         "provider_record_requirements": [
           "provider evidence comes from an observable ButlerBrain read/search operation distinct from any fresh-session write/save",
           "the returned persisted record/content itself contains the complete retained proposition plus required current-run marker/provenance",
-          "returned persisted record/content is distinguishable from retrieval request input; invocation arguments, trace text, echoes, or a new write result are not retrieval evidence"
+          "returned persisted record/content is distinguishable from retrieval request input; invocation arguments, trace text, echoes, or a new write result are not retrieval evidence",
+          "qualifying returned record must either demonstrably predate the verification session or match the original scored-write receipt/version identity; otherwise provider_retrieval_evidence is UNKNOWN"
         ]
       },
       "application": {
