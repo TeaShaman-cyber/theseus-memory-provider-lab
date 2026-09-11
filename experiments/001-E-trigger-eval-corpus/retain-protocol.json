@@ -1,5 +1,5 @@
 {
-  "schema_version": "001-E-retain-protocol-v2",
+  "schema_version": "001-E-retain-protocol-v3",
   "status": "DRAFT_REVIEW_REQUIRED",
   "issue": 5,
   "platform_scope_issue": 7,
@@ -18,14 +18,24 @@
     "unique_canary_per_run": true,
     "preflight_canary_search_is_non_routing": true,
     "forced_postwrite_provider_readback_is_non_routing": true,
-    "disposable_project_per_strong_retain_run": true
+    "disposable_project_per_strong_retain_run": true,
+    "black_box_internal_mechanisms_are_not_inferred": true,
+    "five_whys_stop_at_first_unobservable_discriminator": true,
+    "preflight_must_run_in_separate_diagnostic_session": true,
+    "fresh_routing_conversation_after_preflight": true,
+    "preflight_search_miss_does_not_prove_absence": true,
+    "forced_diagnostic_probe_cannot_satisfy_automatic_readback": true,
+    "retrieval_evidence_requires_complete_retained_proposition": true,
+    "final_answer_source_confirmation_unavailable_without_host_telemetry_or_hard_isolation": true
   },
   "execution_arms": [
     {
       "id": "PRODUCTION_ROUTING",
       "routing_scored": true,
       "project_boundary": "ordinary environment",
-      "provider_hinting": "forbidden"
+      "provider_hinting": "forbidden",
+      "lifecycle_scored": false,
+      "reason_lifecycle_ineligible": "ambient ordinary environment is intentionally uncontrolled; use only for automatic-routing observations"
     },
     {
       "id": "CLEAN_PROJECT_ROUTING",
@@ -55,25 +65,30 @@
       "case_id": "explicit-user-fact",
       "source_class": "USER_ASSERTED",
       "fixture": {
-        "type": "environment",
-        "requirements": [
-          "create disposable project named 001E-REPORT-{unique_run_suffix}",
-          "enable project-only memory",
+        "type": "preceding_user_turn",
+        "prompt_template": "Синтетический контекст теста: scope_marker={scope_marker}. Это только идентификатор области текущего теста, не требование к формату отчёта. Пока ничего не сохраняй.",
+        "parameters": {
+          "scope_marker": "GENERATE:001E-REPORT-SCOPE-{unique_run_suffix}"
+        },
+        "environment_requirements": [
+          "new disposable project",
+          "project-only memory",
           "zero project files",
           "no payload-bearing project instructions in routing-scored arms",
-          "read-only preflight ButlerBrain search finds no record bound to the unique project identifier"
+          "preflight provider search runs in a separate diagnostic session before this routing conversation"
         ],
-        "canary": "project identifier 001E-REPORT-{unique_run_suffix}",
-        "validity_rule": "Any pre-existing provider result bound to the current project canary invalidates the run; generate a new canary."
+        "validity_rule": "Generate a new provider-visible scope_marker. A preflight hit invalidates the marker; a preflight miss is only NOT_FOUND_BY_THIS_QUERY and does not prove global absence."
       },
       "stimulus": "Запомни: для этого проекта отчёты должны быть короткими и с provenance.",
       "provider_readback": {
-        "mode": "observable automatic readback or forced read-only NON_ROUTING diagnostic",
+        "automatic_only_for_scored_readback": true,
         "pass_conditions": [
-          "retrieves the report-format requirement",
-          "binds the requirement to the current unique project scope/canary"
+          "observable automatic post-write result contains the requirement that reports are short",
+          "observable automatic post-write result contains the requirement that reports include provenance",
+          "the same observable result binds the complete formatting proposition to the current scope_marker"
         ],
-        "unknown_rule": "If binding to the current project scope cannot be observed, provider persistence is UNKNOWN rather than waived."
+        "forced_diagnostic_rule": "A later forced search is recorded only as diagnostic_persistence_probe and cannot replace automatic readback.",
+        "unknown_rule": "If automatic readback or proposition-to-scope binding is not observable, provider_postwrite_readback is UNKNOWN and lifecycle acceptance is inconclusive."
       },
       "verification": {
         "session": "fresh_same_project",
@@ -82,7 +97,11 @@
           "retrieves requirement that reports are short",
           "retrieves requirement that reports include provenance"
         ],
-        "attribution_rule": "Functional PASS remains CONFOUNDED unless retrieval-time ButlerBrain evidence is visible."
+        "attribution_rule": "Functional PASS and complete provider retrieval are separate observations; final-answer source remains CONFOUNDED/UNKNOWN without host contribution telemetry or hard isolation.",
+        "provider_evidence_pass_conditions": [
+          "retrieval-time ButlerBrain result contains the complete short+provenance proposition",
+          "the result binds that proposition to the current scope_marker"
+        ]
       },
       "application": {
         "session": "new_fresh_same_project",
@@ -91,8 +110,8 @@
           "report is at most two non-empty lines",
           "report preserves receipt_ref as evidence/provenance"
         ],
-        "matched_control": "Run the identical prompt in an otherwise matched disposable control project with no retain stimulus. If control also passes, classify NON_DIAGNOSTIC.",
-        "attribution_note": "Application effect is corroborative only and never confirms provider attribution."
+        "matched_control": "Run the identical prompt once in an otherwise matched disposable control project with no retain stimulus. Both-pass is NON_DIAGNOSTIC; any single-pair difference is INCONCLUSIVE_SINGLE_PAIR, not causal PASS.",
+        "attribution_note": "Record functional correctness separately from memory-effect evidence; neither confirms final-answer provider causality."
       }
     },
     {
@@ -105,16 +124,18 @@
           "run_id": "GENERATE:001E-WORKFLOW-{unique_run_suffix}",
           "sha": "GENERATE:40_HEX_PER_RUN"
         },
-        "validity_rule": "Generate both values per run; preflight provider search must find neither canary; the next user turn must be the frozen stimulus."
+        "validity_rule": "Generate both values per run. Preflight provider search occurs in a separate diagnostic session and must not return either canary; a miss does not prove global absence. Start a fresh routing conversation, send the fixture, then the frozen stimulus."
       },
       "stimulus": "Workflow завершился успешно, а remote SHA независимо совпал. Зафиксируй этот результат как опыт.",
       "provider_readback": {
-        "mode": "observable automatic readback or forced read-only NON_ROUTING diagnostic",
+        "automatic_only_for_scored_readback": true,
         "pass_conditions": [
           "retrieves exact generated run_id",
           "retrieves exact generated SHA",
+          "contains the successful workflow outcome introduced only by the frozen stimulus",
           "preserves independent remote-SHA verification provenance"
-        ]
+        ],
+        "forced_diagnostic_rule": "A later forced search is diagnostic_persistence_probe only and cannot satisfy automatic readback."
       },
       "verification": {
         "session": "fresh_same_execution_boundary",
@@ -126,7 +147,12 @@
           "retrieves independent remote-SHA match as verification provenance",
           "does not downgrade the result to merely unverified"
         ],
-        "attribution_rule": "Functional PASS remains CONFOUNDED unless retrieval-time ButlerBrain evidence is visible."
+        "attribution_rule": "Complete provider retrieval is observable evidence of provider retrieval, not proof that hidden host logic used it for the final answer.",
+        "provider_evidence_pass_conditions": [
+          "retrieval-time ButlerBrain result contains exact current-run run_id and SHA",
+          "retrieval-time ButlerBrain result contains successful workflow outcome",
+          "retrieval-time ButlerBrain result contains independent remote-SHA verification provenance"
+        ]
       },
       "application": {
         "session": "new_fresh_same_execution_boundary",
@@ -146,16 +172,17 @@
         "parameters": {
           "design_canary": "GENERATE:001E-DESIGN-{unique_run_suffix}"
         },
-        "validity_rule": "Generate a new design_canary and confirm by preflight provider search that it does not exist before the frozen stimulus."
+        "validity_rule": "Generate a new design_canary. Preflight search occurs in a separate diagnostic session; a hit invalidates the canary, while a miss does not prove global absence. Start a fresh routing conversation before fixture+stimulus."
       },
       "stimulus": "Да, принимаю этот дизайн. Используем именно его дальше.",
       "provider_readback": {
-        "mode": "observable automatic readback or forced read-only NON_ROUTING diagnostic",
+        "automatic_only_for_scored_readback": true,
         "pass_conditions": [
           "retrieves exact current-run design_canary",
-          "identifies Design B as user-approved",
+          "contains the approval event introduced only by the frozen stimulus: user approved Design B for continued use",
           "preserves machine-verifiability rationale"
-        ]
+        ],
+        "forced_diagnostic_rule": "A later forced search is diagnostic_persistence_probe only and cannot satisfy automatic readback."
       },
       "verification": {
         "session": "fresh_same_execution_boundary",
@@ -166,7 +193,12 @@
           "preserves rationale that canonical state should be machine-verifiable",
           "distinguishes proposal from user approval"
         ],
-        "attribution_rule": "Functional PASS remains CONFOUNDED unless retrieval-time ButlerBrain evidence is visible."
+        "attribution_rule": "Complete provider retrieval is observable evidence of provider retrieval, not proof that hidden host logic used it for the final answer.",
+        "provider_evidence_pass_conditions": [
+          "retrieval-time ButlerBrain result contains exact current-run design_canary",
+          "retrieval-time ButlerBrain result contains user approval of Design B for continued use",
+          "retrieval-time ButlerBrain result preserves machine-verifiability rationale"
+        ]
       },
       "application": {
         "session": "new_fresh_same_execution_boundary",

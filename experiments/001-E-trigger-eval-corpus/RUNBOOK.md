@@ -71,6 +71,34 @@ Why can the experiment not decide?
 Stop at the first unsupported claim and record `UNKNOWN` or `CONFOUNDED` rather
 than inventing the missing lifecycle stage.
 
+## Black-box engineering contract
+
+The host router, native memory, Skill selection, and provider internals are treated
+as a **black box** unless a stage is directly exposed by the tested surface. The
+method therefore scores observable input/output relations, not guessed internal
+mechanisms.
+
+Feynman rule: every scored claim must be restatable as one simple observation,
+for example: `the fresh-session provider trace returned proposition P`. Claims
+such as `the router preferred ButlerBrain` are invalid unless the corresponding
+selection evidence is actually exposed.
+
+Five-Whys rule: when two hidden mechanisms can explain the same observation, keep
+drilling only while another observable discriminator exists. If no discriminator
+is available, stop with `CONFOUNDED` or `UNKNOWN`. Do not resolve observationally
+equivalent explanations by plausibility.
+
+This yields the central black-box invariant:
+
+```text
+observable provider retrieval of P
+        !=
+proof that hidden host logic chose P for the final answer
+```
+
+Provider retrieval, final-answer correctness, and causal source attribution are
+therefore recorded separately.
+
 ## Frozen-corpus rule
 
 The original query text in `evals.json` is immutable for scored runs. Fixtures,
@@ -116,6 +144,8 @@ A. PRODUCTION_ROUTING
    ordinary ChatGPT environment
    no provider hints
    purpose: observe real route competition and automatic selection
+   lifecycle scoring: INELIGIBLE; this arm is routing-only because ambient
+                      project/history state is intentionally uncontrolled
 
 B. CLEAN_PROJECT_ROUTING
    new disposable Project per run
@@ -162,21 +192,30 @@ per-run canary.
 
 Before the scored retain turn:
 
-1. generate a unique `run_id` / project identifier;
+1. generate a unique `run_id` / provider-visible scope marker;
 2. for cases with synthetic objects, generate unique workflow/design canaries;
-3. perform a **read-only forced provider preflight search** for the canary;
-4. if the canary already exists, invalidate it and generate another;
-5. label the preflight `NON_ROUTING` and exclude it from routing metrics.
+3. in a **separate diagnostic session**, perform a read-only forced provider
+   preflight search for the canary/marker;
+4. if the canary is returned, invalidate it and generate another; a search miss is
+   only `NOT_FOUND_BY_THIS_QUERY`, never proof of global absence;
+5. close the diagnostic session and start a **fresh routing conversation** before
+   the fixture/stimulus;
+6. label the preflight `NON_ROUTING` and exclude it from routing metrics.
 
-After the retain turn, an explicit read-only provider search may be used to
-verify persistence when the host does not expose an automatic readback. That
-search is also `NON_ROUTING`. It can prove provider storage/readback when tied to
-the unique canary, but cannot prove that ButlerBrain supplied a later ChatGPT
-answer.
+After the retain turn, a researcher-forced read-only provider search may be used
+as a **diagnostic persistence probe**. It is always `NON_ROUTING` and must be
+recorded separately from `provider_postwrite_readback`. A forced diagnostic can
+show that the provider can retrieve a proposition, but it cannot satisfy the
+frozen automatic `READBACK` expectation or preserve the hard
+`write_without_readback_rate = 0` metric. If automatic post-write readback is not
+observable, that stage remains `UNKNOWN` and the strong-retain lifecycle is
+inconclusive.
 
-For `explicit-user-fact`, the disposable project's unique identifier is part of
-the scope that a durable provider record must preserve. A generic old record such
-as "reports should be short" is not sufficient evidence for the current run.
+A canary is only a run discriminator, not the retained fact itself. Any provider
+readback or fresh-session retrieval evidence used for scoring must contain the
+**complete retained proposition** introduced by the scored turn, plus required
+provenance, and bind it to the current run marker when one exists. Returning only
+a canary or fixture content is insufficient.
 
 ## Evidence and scoring vocabulary
 
@@ -192,14 +231,23 @@ write_evidence:
 provider_postwrite_readback:
   PASS | FAIL | UNKNOWN
 
+diagnostic_persistence_probe:
+  FOUND_COMPLETE_PROPOSITION | NOT_FOUND | UNKNOWN | NOT_RUN
+
 cross_session_readback:
   PASS | FAIL | UNKNOWN
 
-application:
-  PASS | FAIL | NON_DIAGNOSTIC | UNKNOWN
+provider_retrieval_evidence:
+  COMPLETE_PROPOSITION | PARTIAL_OR_FIXTURE_ONLY | UNKNOWN
 
-provider_attribution:
-  CONFIRMED_BY_RETRIEVAL_TRACE | CONFOUNDED | UNKNOWN
+final_answer_source_attribution:
+  CONFOUNDED | UNKNOWN
+
+application_functional_result:
+  PASS | FAIL | UNKNOWN
+
+application_memory_effect_evidence:
+  NON_DIAGNOSTIC | INCONCLUSIVE_SINGLE_PAIR | NOT_RUN
 ```
 
 `NOT_OBSERVED` is not proof that no write occurred when the host hides tool/Skill
@@ -211,15 +259,22 @@ For strong-retain cases, `provider_postwrite_readback = UNKNOWN` is an
 verified persistence without readback evidence; this keeps
 `write_without_readback_rate = 0` meaningful.
 
-`CONFIRMED_BY_RETRIEVAL_TRACE` requires fresh-session retrieval-time evidence
-that ButlerBrain supplied the relevant unique artifact/canary. An observed write
-or an earlier post-write provider search is insufficient, because native project
-memory or another mechanism could still supply the later answer. In the absence
-of retrieval-time provider evidence, use `CONFOUNDED` or `UNKNOWN`.
+`provider_retrieval_evidence = COMPLETE_PROPOSITION` requires fresh-session
+retrieval-time ButlerBrain evidence containing the complete retained proposition
+and its required provenance, bound to the current run marker where applicable. A
+canary alone, fixture-only content, an observed write, or an earlier forced
+provider search is insufficient.
 
-Because hard provider isolation is currently `BLOCKED`, an isolated-environment
-success is not available as an alternative path to confirmed attribution on this
-surface.
+Under the current black-box surface, observing a complete ButlerBrain retrieval
+still does not prove that hidden host logic used that result rather than an
+observationally equivalent native/project source in the final answer. Therefore
+`final_answer_source_attribution` has no `CONFIRMED` state in this protocol. Hard
+provider isolation or explicit host contribution telemetry would be required to
+add one.
+
+Because hard provider isolation is currently `BLOCKED`, provider retrieval can be
+observed and scored while final-answer causal attribution remains `CONFOUNDED` or
+`UNKNOWN`.
 
 ## Strong-retain cases
 
@@ -227,14 +282,18 @@ Machine-readable fixtures and prompts are in `retain-protocol.json`.
 
 ### `explicit-user-fact`
 
-Run in a newly created disposable Project whose unique project identifier is
-recorded. Use project-only memory. Before the retain stimulus, confirm with a
-read-only ButlerBrain search that no provider record containing that unique
-project identifier exists.
+Run in a newly created disposable Project with project-only memory. The project
+UI title is **not** assumed to be visible to ButlerBrain. Instead, a preceding
+synthetic fixture turn supplies a unique provider-visible `scope_marker` and
+explicitly states that it is only a test-scope identifier, not a formatting
+requirement. Preflight search for that marker runs in a separate diagnostic
+session before the routing conversation.
 
-After the frozen retain turn, a provider readback is `PASS` only if a ButlerBrain
-result binds the formatting requirement to the current unique project scope. A
-stale generic formatting preference is insufficient.
+After the frozen retain turn, automatic provider readback is `PASS` only if the
+observable automatic result contains the complete formatting proposition
+(`short` + `provenance`) bound to the current `scope_marker`. A stale generic
+formatting preference, the scope marker alone, or a later forced diagnostic
+search cannot satisfy automatic readback.
 
 Cross-session verification asks for the saved report-format requirements without
 restating them. Functional retrieval may still be explained by native project
@@ -242,17 +301,23 @@ memory; therefore it does not confirm ButlerBrain attribution by itself.
 
 The downstream application uses a neutral synthetic reporting task and does not
 say "use the saved requirements", "be short", or "include provenance". A matched
-control Project with no retain stimulus receives the same neutral task. If both
-arms naturally satisfy the formatting criteria, application is
-`NON_DIAGNOSTIC`; only a retained-vs-control difference is evidence that the
-retained rule changed behavior.
+control Project with no retain stimulus receives the same neutral task. A single
+retained/control pair may record functional PASS/FAIL, but it is **not** causal
+evidence that memory changed behavior: model variation can produce the same
+difference by chance. One pair is therefore `INCONCLUSIVE_SINGLE_PAIR`; if both
+arms naturally satisfy the criteria it is `NON_DIAGNOSTIC`. Repeated or
+counterbalanced trials require a separately declared sampling/decision rule and
+are outside this minimal field-test slice.
 
 ### `verified-external-effect`
 
 The fixture supplies a **generated** per-run workflow ID and SHA before the frozen
-stimulus. Fixed placeholder SHA values are invalid for execution. The later
-provider readback and fresh-session verification must recover the exact run ID
-and exact generated SHA plus the independent-verification provenance.
+stimulus. Fixed placeholder SHA values are invalid for execution. Because the
+fixture itself already contains those canaries and remote-SHA provenance, neither
+canary proves that the scored retain turn was stored. Automatic provider readback
+and fresh-session provider retrieval evidence must also contain the proposition
+introduced only by the frozen turn: **the workflow completed successfully**, plus
+the independent-verification provenance.
 
 The application prompt asks for a journal record from the saved workflow result
 without restating the outcome or SHA. Downgrading independently verified evidence
@@ -265,25 +330,29 @@ choice, but does **not** claim user approval. Design B carries a generated uniqu
 `design_canary`; the unchanged frozen stimulus supplies the approval event.
 
 Provider readback and later verification must recover the exact current-run
-canary, approved design, and rationale. A stale memory of an earlier Design B is
-therefore unable to satisfy the current run. The application then chooses a next
-step compatible with that retained design without restating its contents.
+canary, the proposition introduced only by the frozen turn (**user approved
+Design B for continued use**), and the rationale. The canary/rationale already
+exist in the fixture and cannot by themselves prove retention of the approval
+event. The application then chooses a next step compatible with that retained
+design without restating its contents.
 
 ## Application-control rule
 
-An application PASS is never provider attribution. For a behavioral property
-that a model may produce by default (for example concise formatting), use a
-matched control with the same application prompt but **without** the retain
-stimulus.
+Application correctness and evidence of a memory effect are separate black-box
+observations. For a behavioral property that a model may produce by default (for
+example concise formatting), use a matched control with the same application
+prompt but **without** the retain stimulus.
 
 ```text
-retained arm passes, control fails   -> application PASS (corroborative)
-both arms pass                       -> NON_DIAGNOSTIC
-retained arm fails                   -> application FAIL/UNKNOWN by evidence
+retained arm functionally passes    -> application_functional_result = PASS
+retained arm functionally fails     -> application_functional_result = FAIL/UNKNOWN
+both arms pass                       -> memory_effect = NON_DIAGNOSTIC
+single pair differs                 -> memory_effect = INCONCLUSIVE_SINGLE_PAIR
 ```
 
-The control establishes whether the retained state changed observable behavior;
-it does not identify which memory source caused the change.
+A single matched pair does not establish causality. Repeated/counterbalanced
+trials may later estimate an effect, but require a predeclared sampling rule. The
+control never identifies which memory source caused an observed difference.
 
 ## Privacy and cleanup boundary
 
@@ -322,16 +391,17 @@ run_id / unique canary
 execution_arm
 project identity and project-memory mode
 fixture validity
-pre-run provider canary search
+pre-run provider canary search and diagnostic-session identity
 host / model when observable
 auto-route evidence
 provider calls / receipts when exposed
-post-write readback status
-fresh-session readback status
-retrieval-time provider evidence
-application status and matched-control result
+automatic post-write readback status
+forced diagnostic persistence-probe status
+fresh-session functional readback status
+retrieval-time provider proposition evidence
+application functional result and matched-control disposition
 competing routes / confounders
-final provider attribution
+final-answer source attribution (`CONFOUNDED` / `UNKNOWN`)
 hard-invariant violations
 ```
 
