@@ -1,5 +1,5 @@
 {
-  "schema_version": "001-E-retain-protocol-v4",
+  "schema_version": "001-E-retain-protocol-v5",
   "status": "DRAFT_REVIEW_REQUIRED",
   "issue": 5,
   "platform_scope_issue": 7,
@@ -28,7 +28,10 @@
     "final_answer_source_confirmation_unavailable_without_host_telemetry_or_hard_isolation": true,
     "automatic_readback_requires_distinct_provider_read_operation": true,
     "provider_retrieval_requires_returned_persisted_record": true,
-    "echo_or_request_trace_is_not_retrieval_evidence": true
+    "echo_or_request_trace_is_not_retrieval_evidence": true,
+    "readback_proposition_must_be_in_returned_stored_content": true,
+    "fresh_session_provider_evidence_requires_read_or_search": true,
+    "fresh_session_write_cannot_count_as_retrieval": true
   },
   "execution_arms": [
     {
@@ -93,7 +96,7 @@
         "unknown_rule": "If a distinct provider read operation and distinguishable persisted record/content are not observable, provider_postwrite_readback is UNKNOWN and lifecycle acceptance is inconclusive.",
         "operation_requirements": [
           "PASS requires an observable provider read operation distinct from the write/save operation",
-          "the read returns persisted record identity and/or stored content distinguishable from the write input or save-response echo"
+          "the returned stored record/content itself contains the complete retained proposition and current run marker; identity-only results, request text, trace text, or echoes cannot be combined to satisfy this"
         ]
       },
       "verification": {
@@ -109,8 +112,9 @@
           "the result binds that proposition to the current scope_marker"
         ],
         "provider_record_requirements": [
-          "provider evidence comes from returned persisted record/content, not invocation arguments or trace text",
-          "returned record/content is distinguishable from the retrieval request input"
+          "provider evidence comes from an observable ButlerBrain read/search operation distinct from any fresh-session write/save",
+          "the returned persisted record/content itself contains the complete retained proposition plus required current-run marker/provenance",
+          "returned persisted record/content is distinguishable from retrieval request input; invocation arguments, trace text, echoes, or a new write result are not retrieval evidence"
         ]
       },
       "application": {
@@ -148,7 +152,7 @@
         "forced_diagnostic_rule": "A later forced search is diagnostic_persistence_probe only and cannot satisfy automatic readback.",
         "operation_requirements": [
           "PASS requires an observable provider read operation distinct from the write/save operation",
-          "the read returns persisted record identity and/or stored content distinguishable from the write input or save-response echo"
+          "the returned stored record/content itself contains the complete retained proposition and current run marker; identity-only results, request text, trace text, or echoes cannot be combined to satisfy this"
         ],
         "unknown_rule": "If a distinct provider read operation and distinguishable persisted record/content are not observable, provider_postwrite_readback is UNKNOWN and lifecycle acceptance is inconclusive."
       },
@@ -169,8 +173,9 @@
           "retrieval-time ButlerBrain result contains independent remote-SHA verification provenance"
         ],
         "provider_record_requirements": [
-          "provider evidence comes from returned persisted record/content, not invocation arguments or trace text",
-          "returned record/content is distinguishable from the retrieval request input"
+          "provider evidence comes from an observable ButlerBrain read/search operation distinct from any fresh-session write/save",
+          "the returned persisted record/content itself contains the complete retained proposition plus required current-run marker/provenance",
+          "returned persisted record/content is distinguishable from retrieval request input; invocation arguments, trace text, echoes, or a new write result are not retrieval evidence"
         ]
       },
       "application": {
@@ -205,7 +210,7 @@
         "forced_diagnostic_rule": "A later forced search is diagnostic_persistence_probe only and cannot satisfy automatic readback.",
         "operation_requirements": [
           "PASS requires an observable provider read operation distinct from the write/save operation",
-          "the read returns persisted record identity and/or stored content distinguishable from the write input or save-response echo"
+          "the returned stored record/content itself contains the complete retained proposition and current run marker; identity-only results, request text, trace text, or echoes cannot be combined to satisfy this"
         ],
         "unknown_rule": "If a distinct provider read operation and distinguishable persisted record/content are not observable, provider_postwrite_readback is UNKNOWN and lifecycle acceptance is inconclusive."
       },
@@ -225,13 +230,14 @@
           "retrieval-time ButlerBrain result preserves machine-verifiability rationale"
         ],
         "provider_record_requirements": [
-          "provider evidence comes from returned persisted record/content, not invocation arguments or trace text",
-          "returned record/content is distinguishable from the retrieval request input"
+          "provider evidence comes from an observable ButlerBrain read/search operation distinct from any fresh-session write/save",
+          "the returned persisted record/content itself contains the complete retained proposition plus required current-run marker/provenance",
+          "returned persisted record/content is distinguishable from retrieval request input; invocation arguments, trace text, echoes, or a new write result are not retrieval evidence"
         ]
       },
       "application": {
         "session": "new_fresh_same_execution_boundary",
-        "prompt": "Назови один следующий технический шаг, совместимый с последним утверждённым синтетическим дизайном, и кратко объясни причину.",
+        "prompt": "Для последнего синтетического выбора из этого эксперимента укажи, можно ли уже продолжать работу. Если да, назови вариант и один следующий технический шаг; если нет — скажи, какого решения не хватает.",
         "pass_conditions": [
           "response explicitly identifies Design B as user-approved",
           "next step is compatible with JSON canonical state and Markdown projection",

@@ -266,10 +266,12 @@ from the write input; otherwise readback remains `UNKNOWN`.
 `provider_retrieval_evidence = COMPLETE_PROPOSITION` requires fresh-session
 retrieval-time ButlerBrain evidence containing the complete retained proposition
 and its required provenance, bound to the current run marker where applicable.
-The evidence must be **returned persisted record/content**, with identity/content
+The evidence must come from an observable provider **read/search operation**
+distinct from any fresh-session write/save. The returned persisted record/content
+itself must contain the complete proposition and run marker/provenance and be
 distinguishable from the retrieval request input. Request arguments, trace text,
-or provider echoes cannot establish retrieval because hidden host context may have
-already placed the proposition into the request. A canary alone, fixture-only
+provider echoes, or a newly created write result cannot establish retrieval because
+hidden host context may already have placed the proposition into the request. A canary alone, fixture-only
 content, an observed write, or an earlier forced provider search is insufficient.
 
 Under the current black-box surface, observing a complete ButlerBrain retrieval
@@ -343,9 +345,11 @@ Provider readback and later verification must recover the exact current-run
 canary, the proposition introduced only by the frozen turn (**user approved
 Design B for continued use**), and the rationale. The canary/rationale already
 exist in the fixture and cannot by themselves prove retention of the approval
-event. The application must also explicitly identify Design B as **user-approved**
-before functional PASS; merely producing a step compatible with the proposed
-Design B is fixture-only evidence.
+event. The application prompt must **not presuppose approval or even that work may
+continue**. It asks whether the latest synthetic choice permits continuation; the
+response itself must recover the user-approved Design B event before functional
+PASS. Merely producing a step compatible with fixture-proposed Design B is
+fixture-only evidence.
 
 ## Application-control rule
 
