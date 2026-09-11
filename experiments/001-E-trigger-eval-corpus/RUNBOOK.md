@@ -271,12 +271,18 @@ distinct from any fresh-session write/save. The returned persisted record/conten
 itself must contain the complete proposition and run marker/provenance and be
 distinguishable from the retrieval request input. Request arguments, trace text,
 provider echoes, or a newly created write result cannot establish retrieval because
-hidden host context may already have placed the proposition into the request. The
-qualifying returned record must additionally either **demonstrably predate the
-verification session** or match the original scored-write receipt/version identity.
-A record first created during fresh-session verification cannot satisfy provider
-retrieval; if neither temporal ordering nor scored-write identity is observable,
-`provider_retrieval_evidence` remains `UNKNOWN`. A canary alone, fixture-only
+hidden host context may already have placed the proposition into the request. The **exact returned content version** must additionally satisfy one of two guards:
+
+1. its provider-generated version/update metadata unambiguously predates the
+   verification boundary in a **common clock domain**, or preserved clock
+   calibration plus timestamp resolution/uncertainty proves the ordering; or
+2. its immutable provider version token exactly matches the immutable version token
+   preserved from the scored write.
+
+A stable record ID, record-level `created_at`, receipt identity without immutable
+content-version equality, or an uncalibrated host/runtime timestamp is insufficient.
+If neither discriminator is available, `provider_retrieval_evidence` remains
+`UNKNOWN`. A canary alone, fixture-only
 content, an observed write, or an earlier forced provider search is insufficient.
 
 Under the current black-box surface, observing a complete ButlerBrain retrieval
@@ -419,21 +425,28 @@ automatic post-write readback status
 forced diagnostic persistence-probe status
 fresh-session functional readback status
 retrieval-time provider proposition evidence
-verification_session_started_at
-returned_record_created_at / returned_record_version (provider-generated when exposed)
+verification_session_boundary_evidence
+returned_content_version_identity_and_provider_metadata
+scored_write_immutable_version_token_when_exposed
+clock_domain_calibration_and_uncertainty_when_using_predates
 qualification_path (`PREDATES_VERIFICATION` | `MATCHES_SCORED_WRITE` | `UNKNOWN`)
-qualification_evidence (preserved temporal comparison or exact scored-write receipt/version comparison)
+qualification_evidence_including_clock_domain_or_exact_version_match
 application functional result and matched-control disposition
 competing routes / confounders
 final-answer source attribution (`CONFOUNDED` / `UNKNOWN`)
 hard-invariant violations
 ```
 
-For `PREDATES_VERIFICATION`, preserve the verification-session boundary, the
-provider-generated creation/version metadata of the returned record, and the
-comparison that establishes ordering. For `MATCHES_SCORED_WRITE`, preserve the
-original scored-write receipt/version identity and the exact comparison against
-the returned record. If those artifacts or the comparison are not preserved,
+For `PREDATES_VERIFICATION`, qualify the **exact returned content version**, not
+the record container. Preserve a provider-side/common-clock verification boundary
+and provider-generated version/update metadata; if clocks differ, preserve
+calibration, timestamp resolution, and uncertainty sufficient to make ordering
+unambiguous. MarcoPolo/host/runtime time alone is not provider temporal evidence.
+
+For `MATCHES_SCORED_WRITE`, preserve an immutable provider content-version token
+from the scored write and require exact equality with the returned content version.
+A stable record ID or receipt ID that can survive mutation is insufficient. If
+these artifacts/comparisons are unavailable or not preserved,
 `qualification_path = UNKNOWN` and `provider_retrieval_evidence` cannot be
 `COMPLETE_PROPOSITION`.
 
