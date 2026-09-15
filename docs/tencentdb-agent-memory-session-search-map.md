@@ -255,20 +255,29 @@ The upstream issues collected in #8 provide concrete failure reports around this
 
 ## New Session Search intersection
 
-### Hypothesis: independent historical witness
+### Hypothesis: independent evidence plane, conditional on source provenance
 
-Session Search can potentially serve as an independent witness for an operational memory provider:
+Session Search can potentially serve as an independent witness **relative to Tencent's operational store**, but only when the Session Search source itself has an independently justified provenance boundary. Content addressing proves artifact integrity after capture; it does not authenticate that the transcript came from a real external session.
+
+Two cases must stay separate:
 
 ```text
-provider capture claims L0 contains turn X
-                |
-                v
-Session Search accepted artifact independently proves whether X existed
+controlled synthetic probe
+  -> fixture definition is the test oracle
+  -> Session Search proves accepted bytes / coverage / reconstruction
+  -> Tencent is checked against the same controlled fixture
+
+real historical claim
+  -> independently obtained provider export/capture/attestation required
+  -> Session Search preserves and verifies that captured evidence
+  -> only then can it act as an independent historical witness against Tencent
 ```
 
-This would allow tests such as:
+Therefore an accepted Session Search artifact alone does **not** prove that a real-world turn existed independently of the capture process. For a synthetic experiment, it is a reproducible corroborating evidence plane backed by the fixture oracle; for a real capture-gap claim, independent source provenance or attestation is required.
 
-- detect L0 capture gaps after provider/proxy failure;
+With that qualification, the comparison can support tests such as:
+
+- detect L0 capture gaps against a controlled fixture or independently acquired historical source;
 - distinguish `not recalled` from `not captured`;
 - validate migration/backfill without trusting the destination store as its own witness;
 - verify that derived L1/L2/L3 statements still have reachable historical support.
@@ -290,7 +299,8 @@ Session Search accepted artifact
 Hard boundary:
 
 ```text
-Session Search artifact remains evidence authority.
+Session Search artifact remains authority for the accepted captured bytes and their provenance metadata.
+It is not automatically authority for real-world session origin.
 Tencent L0 is a derived operational copy.
 No Tencent mutation rewrites the accepted source artifact.
 ```
@@ -300,8 +310,9 @@ The bridge would need a receipt binding at least:
 ```text
 source artifact SHA-256
 source canonical message SHA-256
+source capture/fixture provenance class
 Tencent L0 record ID
-Tencent team/user/agent/session scope
+Tencent team/user/agent/task/session scope
 write/readback result
 ```
 
