@@ -326,28 +326,105 @@ At the pinned Tencent revision, the current SQLite provenance gap means this is 
 | Agent injection | bounded evidence retrieval | automatic provider/proxy injection | materially different |
 | Authority rule | evidence != live authority | memory assets actively shape agent context | must remain separated |
 
-## Smallest useful next probe
+## Smallest useful next probe: apply YAGNI before deployment
 
-Do not install TencentDB into the production Hermes path yet.
+Do not install TencentDB into the production Hermes path, and do not treat a full Tencent deployment as the default test fixture. The current research question can be decomposed into smaller executable boundaries.
 
-A bounded sandbox experiment should use synthetic data:
+### Level 0 — source-contract check (already sufficient to establish the current SQLite gap)
+
+At the pinned Tencent revision:
+
+```text
+ExtractedMemory.source_message_ids
+  -> MemoryRecord.source_message_ids
+  -> writeMemory(...) record object
+
+SQLite l1_records schema
+  -> no source_message_ids column
+
+VectorStore.upsertL1(...)
+  -> does not bind source_message_ids
+
+queryMemoryRecords(...)
+  -> source_message_ids: []
+```
+
+**FACT:** the preferred SQLite L1 persistence/read path cannot round-trip `source_message_ids` because its persisted schema does not contain that field.
+
+Important qualification: `writeMemory(...)` also appends the complete `MemoryRecord` as JSONL, so the JSONL representation does preserve `source_message_ids` at write time. The gap is therefore specifically the preferred SQLite/VectorStore path, not every Tencent representation. The writer also describes VectorStore as the source of truth used when reconciling/cleaning append-only JSONL records, so the JSONL copy does not by itself prove durable provenance through the primary L1 query path.
+
+This source-contract result does **not** require Gateway, Memory Proxy, Memory Hub, Hermes integration, an LLM endpoint, embeddings, secrets, or network access.
+
+### Level 1 — minimal executable SQLite roundtrip
+
+If runtime confirmation is still useful, the smallest faithful executable probe is:
+
+```text
+Node 22
+  -> VectorStore(temp vectors.db, dimensions=0)
+  -> init()
+  -> upsertL1(synthetic MemoryRecord with known source_message_ids)
+  -> close/reopen store
+  -> queryMemoryRecords()
+  -> compare returned source_message_ids
+```
+
+`dimensions=0` is explicitly supported as metadata/FTS-only mode, so this probe needs no embedding model or `sqlite-vec` vector tables. It still exercises Tencent's real store schema and preferred L1 reader boundary.
+
+Expected observation from the pinned source: the persisted/reloaded record is returned with `source_message_ids: []`. If it is not, source inspection missed another persistence path and the hypothesis is falsified.
+
+### Level 2 — dual-write comparison, only if Level 1 needs explanation
+
+Exercise `writeMemory(...)` with local storage and compare the same synthetic record through:
+
+```text
+JSONL readback       -> expected to preserve source_message_ids
+SQLite query/readback -> expected to lose source_message_ids
+```
+
+This isolates whether the issue is representation-specific without invoking LLM extraction.
+
+### Level 3 — real L1 extraction, only if the extractor itself becomes the research question
+
+Only then introduce an LLM endpoint and feed synthetic L0 conversation through actual extraction. This level answers a different question: whether real extraction reliably emits the intended source references. It is not required to test whether the SQLite schema can persist them.
+
+### Full service deployment is not currently justified
+
+Gateway, Memory Proxy, Memory Hub, Hermes provider, team routing, secrets ingress, NFS, or external LLM networking become relevant only if a later experiment asks about integration-level lifecycle/failure semantics. None is required for the current persistence/provenance claim.
+
+### Current MarcoPolo execution status
+
+A bounded attempt was made to prepare the Level-1 upstream runtime in the research clone without lifecycle scripts:
+
+```text
+Node: 22.23.2
+npm ci --ignore-scripts --omit=optional
+  -> NOT APPLICABLE: upstream MemoryCore has no lockfile
+
+npm install --ignore-scripts --omit=optional --no-package-lock
+  -> terminated with exit 137 before the probe could run
+```
+
+The partial `node_modules` scratch was removed and the pinned upstream clone was left clean. This is **DEGRADED / PROBE NOT EXECUTED**, not evidence about TencentDB behavior and not a reason to escalate to a larger deployment. No 403, secret, NFS, Gateway, Proxy, or LLM dependency was reached.
+
+### Later Session Search bridge probe
+
+Only after the local L1 boundary is understood should the broader evidence/control-plane experiment be considered:
 
 ```text
 1. create one Session Search portable artifact with known message hashes;
 2. ingest it and verify accepted-ledger + projection postconditions;
-3. feed the same normalized transcript to a sandbox Tencent L0/seed path;
+3. map the normalized transcript into the smallest proven Tencent L0/seed boundary;
 4. verify exact L0 readback;
-5. allow one L1 extraction cycle;
-6. restart/reopen the store;
-7. ask whether each derived L1 record can still identify the exact source message(s);
-8. compare a deliberate capture omission against Session Search coverage evidence.
+5. run only the minimum L1 processing needed;
+6. compare derived memory provenance against the independent Session Search witness.
 ```
 
 Primary falsifiable question:
 
 > Can a derived Tencent memory remain durably and unambiguously traceable to independently verified historical evidence after persistence/reload?
 
-Expected result from source inspection alone: **currently unresolved, with evidence of a provenance gap on the SQLite L1 path.**
+Current answer: **the SQLite L1 path has a source-proven provenance gap; broader end-to-end provenance remains unproven.**
 
 ## Current disposition
 
